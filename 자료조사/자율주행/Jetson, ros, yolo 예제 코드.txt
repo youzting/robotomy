@@ -1,0 +1,43 @@
+#include <iostream>
+#include <opencv2/opencv.hpp>
+#include <NvInfer.h>  // TensorRT 관련
+#include <cuda_runtime_api.h>
+
+using namespace cv;
+using namespace std;
+
+// 예시 함수: 객체 인식을 수행한다고 가정
+void detect_objects(Mat frame) {
+    // 실제론 TensorRT 모델에 frame을 넣고 추론 결과를 출력
+    // 여긴 단순 출력만!
+    cout << "YOLO 모델로 객체 인식 실행 중..." << endl;
+    // 예시 출력
+    cout << "사람 1명, 박스 2개 감지됨" << endl;
+}
+
+int main() {
+    VideoCapture cap(0); // 0번 카메라 열기
+    if (!cap.isOpened()) {
+        cerr << "카메라를 열 수 없습니다!" << endl;
+        return -1;
+    }
+
+    cout << "실시간 객체 인식 시작!" << endl;
+
+    while (true) {
+        Mat frame;
+        cap >> frame;  // 한 프레임 캡처
+        if (frame.empty()) break;
+
+        // 객체 인식 실행
+        detect_objects(frame);
+
+        // 화면에 출력
+        imshow("Camera View", frame);
+        if (waitKey(30) >= 0) break; // 키 입력 시 종료
+    }
+
+    cap.release();
+    destroyAllWindows();
+    return 0;
+}

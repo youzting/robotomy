@@ -1,0 +1,105 @@
+[자율주행 자동차 동작 방식 및 알고리즘]
+
+
+[자율주행의 이해]
+
+1. 자율주행자동차 개요
+	자율주행자동차란 운전자 또는 승객의 조작 없이 자동차 스스로 운행이 가능한 자동차를 말한다.
+	(출처: 「자동차관리법」 제2조 제1호의3)
+
+2. 시스템 구성요소 (System Components)
+
+액추에이터 (Actuators)
+	- EPS (Electric Power Steering): 전자식 파워 스티어링으로, 운전자가 핸들을 돌리는 힘을 전자적으로 보조하여 조향을 가능하게 한다.
+	- ABS & ESP (Anti-lock Brake System & Electronic Stability Program): 급제동 시 바퀴가 잠기는 것을 방지하고, 차량이 미끄러지지 않도록 안정성을 확보해주는 제동 시스템.
+	- ECU (Electronic Control Unit) - EMS (Engine Management System): 차량 내 전자장비들을 제어하며, 특히 엔진 제어에 필요한 정보를 처리하고 실행한다.
+
+인식 센서 (Perception Sensors)
+	- LiDAR (Light Detection and Ranging): 펄스 레이저를 이용해 물체와의 거리 및 위치를 감지. TOF(Time of Flight) 방식으로 작동. 우리가 사용하는 장비는 'YD LiDAR G2'로, 중국 YDLIDAR사가 만든 저가형 360도 회전 센서이다.
+	- Camera: 이미지와 영상을 통해 차선, 표지판, 보행자 등을 인식한다.
+	- FCM (Forward Collision Mitigation): 전방 충돌을 방지하기 위한 시스템.
+	- Radar: 전자기파를 통해 주변 차량 및 장애물의 속도와 거리 파악.
+
+ HMI 시스템 (Human Machine Interface)
+	- Tablet PC, Side Monitor, Sub Monitor, Control Panel 등: 운전자 또는 탑승자가 시스템의 정보를 확인하고 입력할 수 있도록 돕는 장치들.
+
+제어시스템 (Control System)
+	- Embedded PC, EMBEDDED PC (TLR), AUTOBOX, ADCU (Advanced Driving Control Unit)
+	- KATECH ECU: 한국자동차연구원(KATECH)에서 개발한 ECU로, 자율주행 제어 연산을 수행.
+
+협력주행 시스템 (Cooperative Driving System)
+	- WAVE 모듈: 차량 간 통신(V2V, V2X)을 위한 무선 통신 모듈.
+	- CDGPS 모듈: 정밀 위치 인식을 위한 보정 GPS 시스템.
+	- LDM 모듈: 로컬 동적 지도(Local Dynamic Map)로, 실시간으로 주변 도로 정보를 제공.
+
+3. 자율주행 기술의 자동화 단계
+
+	- 0단계: 자율주행 없음
+	- 1단계: 운전자 지원 (ADAS 수준)
+	- 2단계: 부분 자동화 (운전자는 항시 개입 준비)
+	- 3단계: 조건부 자동화 (특정 조건에서 차량이 자율 주행, 운전자는 요청 시 개입)
+	- 4단계: 고도 자동화 (대부분 상황에서 차량이 자율적으로 운행)
+	- 5단계: 완전 자동화 (운전자 개입 없이 완전한 자율 주행)
+
+	※ 현재 우리 팀은 3단계까지 구현할 예정.
+
+4. 자율주행 시스템의 종류
+	- 부분 자율주행 시스템
+	- 조건부 완전자율 주행 시스템
+	- 완전 자율주행 시스템
+
+
+[로봇 자율주행 시스템: 동작 방식 및 알고리즘 (카메라 기반)] 
+	※YD LiDAR G2(360도 2D 회전식 LiDAR) [도면형태로 결과가 나옴]
+
+[동작 알고리즘 단계]
+
+1. 인식 (Perception)
+- 카메라 입력: Cherry 카메라를 통해 실시간 영상 수신
+- Jetson Orin NX(작은 슈퍼컴퓨터)에서 YOLO(객체 인식모델) 등 경량화된 딥러닝 모델로 객체 인식
+- LiDAR는 거리 인식 및 장애물 감지에 보조적으로 활용
+
+	Jetson Orin NX에 Cherry 카메라를 USB로 연결시켜사용 (jetson orin NX를 사용하기 위해선 JetPack이라는 NVIDIA 전용 리눅스를 설치해야함)
+	[카메라 영상] → [ROS 카메라 노드] → [YOLO 추론 노드 (Jetson GPU)] → [물체 인식 결과 퍼블리시]
+	로봇에 usb를 직접 연결하고 외부 pc로 모니터링, 원격 조작을 함.
+
+2. 위치 추정 및 지도화 (Localization & Mapping)
+- SLAM 또는 Visual Odometry 기반 위치 추정
+- 사용자가 입력한 지형 정보를 기준으로 지도 구성
+- ROS 기반의 tf, map, odom 프레임 사용 (2D이미지) 
+[흑백 이미지로 구성하고 흰색 선을그어 이동 가능하게 만듬.]
+
+	map	절대 좌표계 (지도 기준 위치)
+	odom	로봇이 odometry로 추정한 상대 위치
+	base_link	로봇 본체의 중심 좌표
+	camera_link, laser 등	센서 위치 좌표계
+	로 이용된다고 함.
+
+3. 경로 계획 (Path Planning)
+- 사용자로부터 입력된 목적지를 기준으로 A*, Dijkstra 등 알고리즘으로 경로 계산
+- 실시간 장애물 회피는 LiDAR 기반 로컬 경로 계획 사용
+- 생성된 경로는 ROS의 /nav_msgs/Path 토픽으로 퍼블리시
+
+	SLAM이나 visual Odometry를 이용해 현재위치를 파악하고 사용자가 목적지를 입력시 로봇은 보통 Dijkstra 알고리즘을
+	이용하여 전체 경로를 계산, 계산된 경로는 ROS에 퍼블리시 되고 LIDAR를 통해 실시간으로 장애물을 감지하여
+	경로를 조정, 
+
+4. 제어 (Control)
+- 생성된 경로를 따라 /cmd_vel 명령 생성
+- OpenCR1.0 또는 Arduino Mega로 전달되어 XM430 및 MG92B 모터 제어
+- PID 또는 MPC 제어 적용 가능
+	ROS에서 속도 명령을 보내고 그걸 OpenCR이나 Arduino mega 같은 제어보드로 전달 제어보드는 그걸 기반으로
+	바퀴나 모터를 움직임 움직이는 속도나 방향은 PID나 MPC같은 알고리즘으로 정밀하게 조절해야함.
+
+5. 통신 및 상태 출력
+- ROS 내부 통신은 Wi-Fi 방식으로 구현
+- AMOLED 패널을 이용하면 로봇이 보고 있는 카메라 영상뿐 아니라, 속도, 위치, 배터리 잔량 등의 상태 정보를 실시간으로 시각화가능
+- ROS에서 rqt_graph/ RViz를 이용하면 디버깅, 센서 확인, 노드 연결상태를 보기 편하다.
+
+
+결론
+
+ Jetson Orin NX와 Cherry 카메라, YD LiDAR G2를 기반으로 ROS 환경에서 자율주행 로봇을 개발하고
+로봇은 카메라를 통해 물체를 인식하며 사용자가 입력한 지형 정보를 바탕으로 경로를 계획하여 자율적으로 이동한다.
+위치는 Visual Odometry나 SLAM을 통해 추정하며 실시간 장애물 감지를 통해 안전하게 경로를 조정한다.
+모든 통신은 Wi-Fi 방식으로 운영되며 필요한 경우 AMOLED 패널을 통해 로봇의 상태나 영상을 실시간으로 확인할 수 있음
