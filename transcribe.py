@@ -5,7 +5,7 @@ import whisper
 
 model = whisper.load_model("base")  # base, small, medium, large 중 선택 가능
 
-result = model.transcribe("audio.mp3")  # 파일 경로 수정
+result = model.transcribe("audio.mp3")  # 파일 이름 수정
 
 print("📝 Transcription:")
 print(result["text"])
