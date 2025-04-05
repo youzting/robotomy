@@ -1,9 +1,15 @@
 #준비물
 
+Window 환경
 VS Code
-Python 3.9 이상
+Python 3.10.0
 pip
-ffmpeg
-가상환경
+ffmpeg - whisper에 사용됨. 관리자 권한으로 cmd 실행 후, choco install ffmpeg 를 입력하여 설치함.
+가상환경 설정
+1. python -m venv venv //가상환경 생성
+2. .\venv\Scripts\Activate //가상환경 활성
 
 #필요 패키지 설치
+1. pip install --upgrade pip //pip 최신화
+2. pip install git+https://github.com/openai/whisper.git //Whisper 설치
+3. pip install TTS //TTS 설치
