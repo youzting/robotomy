@@ -27,5 +27,20 @@
 - 사용한 TTS 모델은, "tts_models/en/ljspeech/tacotron2-DDC"이며 첫 실행 시 모델을 로드하는 데 시간이 소요됨
 - tts.tts_to_file(text="Hello, how are you today?", file_path="output.wav")에서 음성으로 바꿀 텍스트는 text="문장 내용"에서 바꿀 수 있고,
 파일 이름은 file_path="파일 이름"을 바꾸면 된다.
-- 영어 문장 "Hello, how are you today?" 입력 결과 output_test_en.wav 파일이 생성되었다.
-- 초기 코드에서는 영어 모델만 사용했기에, 영어 문장만 음성 파일로 만들 수 있다.
+- 영어 문장 "Hello, how are you today?" 입력 결과 output_test_en.wav 파일이 생성됨
+- 초기 코드에서는 영어 모델만 사용했기에, 영어 문장만 음성 파일로 만들 수 있음
+- 여러 언어를 사용하기 위해서, 다양한 언어의 TTS 모델(영어,한글,일본어,...)을 가져와서 langdetect 패키지를 설치함
+- langdetect 패키지를 쓰면 문장의 언어를 감지해서 자동으로 모델을 선택할 수 있음
+- 초기 코드에서 아래와 같은 코드를 추가해서 보완함
+def detect_lang(text):
+    import langdetect
+    return langdetect.detect(text)
+
+sentence = "오늘 날씨가 참 좋네요."
+
+lang = detect_lang(sentence)
+
+if lang == 'ko':
+    tts_ko.tts_to_file(text=sentence, file_path="output.wav")
+else:
+    tts_en.tts_to_file(text=sentence, file_path="output.wav")
