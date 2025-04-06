@@ -32,6 +32,7 @@
 - 여러 언어를 사용하기 위해서, 다양한 언어의 TTS 모델(영어,한글,일본어,...)을 가져와서 langdetect 패키지를 설치함
 - langdetect 패키지를 쓰면 문장의 언어를 감지해서 자동으로 모델을 선택할 수 있음
 - 초기 코드에서 아래와 같은 코드를 추가해서 보완함
+
 def detect_lang(text):
     import langdetect
     return langdetect.detect(text)
@@ -44,5 +45,8 @@ if lang == 'ko':
     tts_ko.tts_to_file(text=sentence, file_path="output.wav")
 else:
     tts_en.tts_to_file(text=sentence, file_path="output.wav")
-- langdetect를 통한 언어 식별을 가능하지만, 현재 사용하는 TTS 라이브러리에 원하는 한국어 모델이 포함되어 있지 않아서 실행 불가함
-- langdetect를 통한 언어 식별과 다국어 지원 TTS 모델을 통하여 한국어 TTS도 생성 가능하게 함
+- langdetect를 통한 언어 식별은 가능하지만, 현재 사용하는 TTS 라이브러리에 한국어 모델이 지원되지 않음
+- langdetect를 통한 언어 식별과 다국어 지원 TTS 모델을 통하여 한국어 TTS도 생성 가능해질 거라 예상함
+- 실행 결과 많은 오류 발생
+- 다시 초기 코드로 백업함
+- 해결 방안 필요함
