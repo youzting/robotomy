@@ -1,0 +1,15 @@
+1.yolo v5를 다운로드를 위한 git 설치
+
+2.깃허브 YOLO v5 설치
+git clone https://github.com/ultralytics/yolov5.git
+cd yolov5
+
+3.가상환경 만들기
+python -m venv yolov5env
+yolov5env\Scripts\activate
+
+4.라이브러리 설치
+pip install -r requirements.txt
+
+5.확인 테스트 
+python detect.py --weights yolov5s.pt --img 640 --source data/images/bus.jpg
