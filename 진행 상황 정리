@@ -44,3 +44,5 @@ if lang == 'ko':
     tts_ko.tts_to_file(text=sentence, file_path="output.wav")
 else:
     tts_en.tts_to_file(text=sentence, file_path="output.wav")
+- langdetect를 통한 언어 식별을 가능하지만, 현재 사용하는 TTS 라이브러리에 원하는 한국어 모델이 포함되어 있지 않아서 실행 불가함
+- langdetect를 통한 언어 식별과 다국어 지원 TTS 모델을 통하여 한국어 TTS도 생성 가능하게 함
