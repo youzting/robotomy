@@ -4,6 +4,7 @@
 from TTS.api import TTS
 
 # 모델 로드 (최초 실행 시 다운로드됨)
+# 사용 모델 (tacotron2)
 tts = TTS(model_name="tts_models/en/ljspeech/tacotron2-DDC", progress_bar=True, gpu=False)
 
 # 텍스트 → 오디오
