@@ -31,22 +31,12 @@
 - 초기 코드에서는 영어 모델만 사용했기에, 영어 문장만 음성 파일로 만들 수 있음
 - 여러 언어를 사용하기 위해서, 다양한 언어의 TTS 모델(영어,한글,일본어,...)을 가져와서 langdetect 패키지를 설치함
 - langdetect 패키지를 쓰면 문장의 언어를 감지해서 자동으로 모델을 선택할 수 있음
-- 초기 코드에서 아래와 같은 코드를 추가해서 보완함
 
-def detect_lang(text):
-    import langdetect
-    return langdetect.detect(text)
-
-sentence = "오늘 날씨가 참 좋네요."
-
-lang = detect_lang(sentence)
-
-if lang == 'ko':
-    tts_ko.tts_to_file(text=sentence, file_path="output.wav")
-else:
-    tts_en.tts_to_file(text=sentence, file_path="output.wav")
-- langdetect를 통한 언어 식별은 가능하지만, 현재 사용하는 TTS 라이브러리에 한국어 모델이 지원되지 않음
-- langdetect를 통한 언어 식별과 다국어 지원 TTS 모델을 통하여 한국어 TTS도 생성 가능해질 거라 예상함
-- 실행 결과 많은 오류 발생
-- 다시 초기 코드로 백업함
-- 해결 방안 필요함
+4. TTS 다국어 모델 테스트 (25.04.13)
+- speak.py 소스 코드 교체
+- 현재 TTS 라이브러리는 한국어 모델을 지원하지 않음
+- 이로 인해 다국어 모델을 통해서 한국어 음성을 출력 시도함
+- 사용하는 다국어 모델은 xttx_v2
+- 입력한 예시용 음성 파일을 토대로 원하는 문장을 TTS 음성 파일로 만들어 냄
+- audio_test_en.mp3 파일을 토대로 "Hello, how are you? Nice to meet you." 문장을 작성하였고,
+output_test_en.wav 파일이 출력됨
