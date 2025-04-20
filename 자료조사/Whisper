@@ -1,4 +1,5 @@
-소개: Whisper는 OpenAI에서 만든 음성 인식 모델임
+소개
+Whisper는 OpenAI에서 만든 음성 인식 모델임
 음성을 인식하여 텍스트로 바꾸어주는 역할을 함
 대표 모델로는 base, small, medium, large, large-v3 등이 존재함
 
