@@ -13,3 +13,4 @@
 1. pip install --upgrade pip //pip 최신화
 2. pip install git+https://github.com/openai/whisper.git //Whisper 설치
 3. pip install TTS //TTS 설치
+4. pip install cutlet // 일본어를 로마자로 변경하거나 정리해주는 라이브러리
