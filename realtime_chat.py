@@ -1,7 +1,14 @@
-// 노트북 수리 완료 예정일 25.04.21.(월) 이후 코드 테스트 예정
-// Whisper,ChatGPT, TTS 를 기반으로 한 실시간 대화 시스템의 코드를 설계해 둠
+// Whisper,ChatGPT, TTS 를 기반으로 한 실시간 대화 시스템 ver.1
+// 음성 파일 입력 -> Whisper로 음성을 텍스트로 변환 -> GPT 응답 생성 -> 응답(텍스트)을 TTS로 변환 -> 음성 출력
 
 import whisper
+
+from torch.serialization import add_safe_globals
+from TTS.tts.configs.xtts_config import XttsConfig, XttsAudioConfig
+from TTS.config.shared_configs import BaseDatasetConfig
+from TTS.tts.models.xtts import XttsArgs
+add_safe_globals({XttsConfig, XttsAudioConfig, BaseDatasetConfig, XttsArgs})
+
 from TTS.api import TTS
 import os
 import sounddevice as sd
@@ -29,7 +36,7 @@ def play_audio(file_path):
 # --- STEP 5: 대화 루프 ---
 def main():
     # 예시용 음성 파일 입력 (Whisper용)
-    input_audio = "user_input.wav"  # 실제 사용 시 mic 녹음으로 확장 가능
+    input_audio = "audio_test_ko.wav"  # 실제 사용 시 mic 녹음으로 확장 가능
     speaker_audio = "audio_test_ko.wav"  # 화자 음성 예시 (한국어 TTS 스타일링용)
 
     # 1. Whisper로 음성 → 텍스트
