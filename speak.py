@@ -31,26 +31,27 @@ def get_tts_model(language):
 def synthesize_speech(text):
     language = get_language(text)
     tts_model = get_tts_model(language)
-    if language == 'ja':
-        tts_model.tts_to_file(
-            text,
-            file_path="output_ja.wav",
-            speaker_wav="audio_test_jp.mp3",   # 여기에 음성 샘플 경로
-            language="ja"
-        )
-    elif language == 'en':
-        tts_model.tts_to_file(
-            text,
-            file_path="output_en.wav",
-            speaker_wav="audio_test_en.mp3",   # 여기에 음성 샘플 경로
-        )
-    elif language == 'ko':
-        tts_model.tts_to_file(
-            text,
-            file_path="output_ko.wav",
-            speaker_wav="audio_test_ko.wav",   # 여기에 음성 샘플 경로
-            language="ko"
-        )
+
+    file_name = f"output_{language}.wav"
+    speaker_wavs = {
+        'ja': "audio_test_jp.mp3",
+        'en': "audio_test_en.mp3",
+        'ko': "audio_test_ko.wav"
+    }
+
+    kwargs = {
+        "text": text,
+        "file_path": file_name,
+        "speaker_wav": speaker_wavs.get(language)
+    }
+    
+    if language in ['ja', 'ko']:
+        kwargs["language"] = language  # 다국어 모델만 language 필요
+
+    tts_model.tts_to_file(**kwargs)
+
+text = "도레미파솔라시도레미파솔라시"
+synthesize_speech(text)
 
 text = "도레미파솔라시도레미파솔라시"
 synthesize_speech(text)
