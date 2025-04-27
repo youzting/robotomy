@@ -8,6 +8,7 @@
 6. 가상환경 설정
 Ⅰ. python -m venv venv //가상환경 생성
 Ⅱ. .\venv\Scripts\Activate //가상환경 활성화
+7. OpenAI 가입 및 API 키 발급
 
 #필요 패키지 설치
 1. pip install --upgrade pip //pip 최신화
