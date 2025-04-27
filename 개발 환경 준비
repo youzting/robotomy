@@ -15,3 +15,4 @@
 3. pip install TTS //TTS 설치
 4. pip install langdetect //text의 언어를 구별해줌
 5. pip install sounddevice //음성재생
+6. pip install openai //ChatGPT 연결
