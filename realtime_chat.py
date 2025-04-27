@@ -2,6 +2,8 @@
 // 마이크 음성 입력 -> Whisper로 음성을 텍스트로 변환 -> GPT 응답 생성 -> 응답(텍스트)을 TTS로 변환 -> 음성 출력
 // 사용자 발화 : user_input.wav 생성
 // TTS 음성 : response.wav 생성
+// 엔터 키 입력 시 음성 녹음 시작
+// 종료(Ctrl + C) 입력 전까지 대화 기능 반복
 
 import whisper
 
@@ -48,31 +50,34 @@ def main():
     input_audio = "user_input.wav"       # 마이크 음성 녹음
     speaker_audio = "audio_test_ko.wav"  # 화자 스타일링용
 
-    # 1. 마이크로 녹음
-    record_audio(input_audio)
+    while True:
+        input("🎯 [엔터]를 누르면 녹음을 시작합니다... (종료하려면 Ctrl+C)")
+        
+        # 1. 마이크로 녹음
+        record_audio(input_audio)
 
-    # 2. Whisper로 음성 → 텍스트
-    print("🎙️ 음성 → 텍스트 처리 중...")
-    result = whisper_model.transcribe(input_audio)
-    user_text = result["text"]
-    print("📝 사용자의 발화:", user_text)
+        # 2. Whisper로 음성 → 텍스트
+        print("🎙️ 음성 → 텍스트 처리 중...")
+        result = whisper_model.transcribe(input_audio)
+        user_text = result["text"]
+        print("📝 사용자의 발화:", user_text)
 
-    # 3. ChatGPT 응답 생성
-    response_text = mock_chatgpt_response(user_text)
-    print("🤖 ChatGPT 응답:", response_text)
+        # 3. ChatGPT 응답 생성
+        response_text = mock_chatgpt_response(user_text)
+        print("🤖 ChatGPT 응답:", response_text)
 
-    # 4. TTS로 응답 음성 생성
-    output_audio = "response.wav"
-    tts.tts_to_file(
-        text=response_text,
-        file_path=output_audio,
-        speaker_wav=speaker_audio,
-        language="ko"
-    )
-    print("🔊 응답 음성 생성 완료:", output_audio)
+        # 4. TTS로 응답 음성 생성
+        output_audio = "response.wav"
+        tts.tts_to_file(
+            text=response_text,
+            file_path=output_audio,
+            speaker_wav=speaker_audio,
+            language="ko"
+        )
+        print("🔊 응답 음성 생성 완료:", output_audio)
 
-    # 5. 음성 재생
-    play_audio(output_audio)
+        # 5. 음성 재생
+        play_audio(output_audio)
 
 if __name__ == "__main__":
     main()
