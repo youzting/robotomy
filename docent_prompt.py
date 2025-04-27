@@ -13,3 +13,20 @@ def get_docent_prompt():
 - 너무 딱딱하지 않고 부드럽고 친근한 말투를 사용하세요.  
 - 관람객의 질문이 명확하지 않더라도, 친절하게 핵심 전시 정보를 소개하세요.
 """
+
+#from docent_prompt import get_docent_prompt  #  이렇게 불러오기
+
+def real_chatgpt_response(user_text):
+    system_prompt = get_docent_prompt()  #  외부 모듈에서 가져옴
+
+    response = openai.ChatCompletion.create(
+        model="gpt-4",
+        messages=[
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": user_text},
+        ],
+        temperature=0.6,
+        max_tokens=500
+    )
+    answer = response['choices'][0]['message']['content'].strip()
+    return answer
