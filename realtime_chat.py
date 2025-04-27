@@ -1,5 +1,7 @@
 // Whisper,ChatGPT, TTS 를 기반으로 한 실시간 대화 시스템 ver.2
 // 마이크 음성 입력 -> Whisper로 음성을 텍스트로 변환 -> GPT 응답 생성 -> 응답(텍스트)을 TTS로 변환 -> 음성 출력
+// 사용자 발화 : user_input.wav 생성
+// TTS 음성 : response.wav 생성
 
 import whisper
 
@@ -27,19 +29,19 @@ def mock_chatgpt_response(user_text):
     # 실제 ChatGPT API 연결 대신 간단히 응답 예시
     return f"당신이 이렇게 말했어요: '{user_text}' 좋은 하루 되세요!"
 
-# --- STEP 4: 음성 재생 함수 ---
-def play_audio(file_path):
-    data, samplerate = sf.read(file_path)
-    sd.play(data, samplerate)
-    sd.wait()
-
-# --- STEP 5: 음성 녹음 함수 ---
+# --- STEP 4: 음성 녹음 함수 ---
 def record_audio(filename, duration=5, samplerate=16000): #duraiton 녹음할 시간
     print("🎤 녹음 시작! (말씀하세요...)")
     recording = sd.rec(int(duration * samplerate), samplerate=samplerate, channels=1, dtype='int16')
     sd.wait()
     sf.write(filename, recording, samplerate)
     print("✅ 녹음 완료:", filename)
+
+# --- STEP 5: 음성 재생 함수 ---
+def play_audio(file_path):
+    data, samplerate = sf.read(file_path)
+    sd.play(data, samplerate)
+    sd.wait()
 
 # --- STEP 6: 대화 루프 ---
 def main():
