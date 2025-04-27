@@ -1,4 +1,4 @@
-// Whisper,ChatGPT, TTS 를 기반으로 한 실시간 대화 시스템 ver.2.1
+// Whisper,ChatGPT, TTS 를 기반으로 한 실시간 대화 시스템 ver.2.2
 // 마이크 음성 입력 -> Whisper로 음성을 텍스트로 변환 -> GPT 응답 생성 -> 응답(텍스트)을 TTS로 변환 -> 음성 출력
 // 사용자 발화 : user_input.wav 생성
 // TTS 음성 : response.wav 생성
