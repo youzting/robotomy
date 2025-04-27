@@ -1,4 +1,4 @@
-// 
+//realtime_chat.py 에 OpenAI API키를 이용한 ChatGPT 답변 생성 코드를 추가한 버전
 
 import whisper
 from torch.serialization import add_safe_globals
