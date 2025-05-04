@@ -20,7 +20,7 @@ def get_language(text):
 
 def get_tts_model(language):
     if language == 'ja':  # 일본어
-        model = TTS(model_name="tts_models/multilingual/multi-dataset/xtts_v2", progress_bar=False, gpu=False)
+        model = TTS(model_name="tts_models/ja/kokoro/tacotron2-DDC", progress_bar=False, gpu=False)
     elif language == 'en':  # 영어
         model = TTS(model_name="tts_models/en/ljspeech/tacotron2-DDC", progress_bar=False, gpu=False)
     else: #한국어
@@ -45,7 +45,7 @@ def synthesize_speech(text):
         "speaker_wav": speaker_wavs.get(language)
     }
     
-    if language in ['ja', 'ko']:
+    if language in ['ko']:
         kwargs["language"] = language  # 다국어 모델만 language 필요
 
     tts_model.tts_to_file(**kwargs)
