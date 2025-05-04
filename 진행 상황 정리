@@ -55,7 +55,7 @@ output_test_kr.wav 파일이 출력됨
 - speak.py 소스 코드 개선
 - langdetect를 이용해 text의 언어를 추정함
 - 추정한 언어를 기반으로 언어 별 TTS 모델을 사용함
-- 영어의 경우 tacotron2-DDC 사용
+- 영어의 경우 ljspeech/tacotron2-DDC 사용
 - 한국어의 경우 TTS 라이브러리가 한국어 모델을 지원하지 않기에 다국어 모델 xtts_v2 사용
 - 일본어의 경우 현재 fugashi와 MeCab 간 오류로 인해 일시적으로 개발 중지 및 차후 개선 예정
 
@@ -66,5 +66,9 @@ output_test_kr.wav 파일이 출력됨
 - 음성 감지 시 음성 녹음 시작 기능 추가
 - 일정 시간 이상 무음일 시 녹음 종료 기능 추가
 - 종료 키(Ctrl+C) 입력 전까지 대화 자동 반복 기능 추가
+- OpenAI API키 유료 결제 필요로 ChatGPT 연결을 통한 응답 생성 기능 테스트 일시 정지
 
-8. (25.05.04)
+8. TTS 테스트 후 개선 (25.05.04)
+- speak.py 소스 코드 개선
+- 일본어 전용 모델 kokoro/tacotron2-DDC 사용
+- fugashi와 MeCab간 오류 해결
