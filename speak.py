@@ -52,6 +52,3 @@ def synthesize_speech(text):
 
 text = "도레미파솔라시도레미파솔라시"
 synthesize_speech(text)
-
-text = "도레미파솔라시도레미파솔라시"
-synthesize_speech(text)
