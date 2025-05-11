@@ -2,7 +2,7 @@
 // 생성된 음성 파일은 예제 코드와 같은 폴더에 위치함
 // 각 언어별 모델 사용
 // 한국어는 다국어 모델 사용
-// 영어, 한국어, 일본어 테스트 통과
+// 영어, 한국어, 일본어, 중국어(간체) 테스트 통과
 // langdetect를 통해 text 언어 추정 후 해당 언어로 TTS 생성
 // TTS 자동 재생
 
@@ -46,6 +46,8 @@ def get_tts_model(language):
         model = TTS(model_name="tts_models/en/ljspeech/tacotron2-DDC", progress_bar=False, gpu=False)
     elif language == 'ko':
         model = TTS(model_name="tts_models/multilingual/multi-dataset/xtts_v2", progress_bar=False, gpu=False)
+    elif language == 'zh-cn':
+        model = TTS(model_name="tts_models/zh-CN/baker/tacotron2-DDC-GST", progress_bar=False, gpu=False)
     else:
         print(f"[!] 언어 '{language}'은 지원되지 않으므로 영어 모델로 대체합니다.")
         model = TTS(model_name="tts_models/en/ljspeech/tacotron2-DDC", progress_bar=False, gpu=False)
@@ -70,7 +72,8 @@ def synthesize_speech(text):
     speaker_wavs = {
         'ja': "audio_test_jp.mp3",
         'en': "audio_test_en.mp3",
-        'ko': "audio_test_ko.wav"
+        'ko': "audio_test_ko.wav",
+        'zh-cn': "audio_test_zh.mp3"
     }
 
     kwargs = {
@@ -90,5 +93,5 @@ def synthesize_speech(text):
 
 # 테스트 실행
 if __name__ == "__main__":
-    text = "こんにちは。食事はありましたか？"
+    text = "你好。今天天气晴朗。"
     synthesize_speech(text)
