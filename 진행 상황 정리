@@ -72,3 +72,8 @@ output_test_kr.wav 파일이 출력됨
 - speak.py 소스 코드 개선
 - 일본어 전용 모델 kokoro/tacotron2-DDC 사용
 - fugashi와 MeCab간 오류 해결
+
+9. TTS 테스트 후 개선 (25.05.11)
+- speak.py 소스 코드 개선
+- 중국어(간체) 전용 모델 baker/tacotron2-DDC-GST 사용
+- 한국어/영어/일본어/중국어(간체) 총 4개 국어 테스트 완료
