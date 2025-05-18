@@ -2,8 +2,7 @@
 // 마이크 음성 입력 -> Whisper로 음성을 텍스트로 변환 -> GPT 응답 생성 -> 응답(텍스트)을 TTS로 변환 -> 음성 출력
 // 사용자 발화 : user_input.wav 생성
 // TTS 음성 : response.wav 생성
-// 음성 감지 시 음성 녹음 시작
-// silence_duration을 넘어가면 음성 감지 종료
+// 'r'키 입력 시 음성 녹음 시작
 // 종료(Ctrl + C) 입력 전까지 대화 기능 반복
 
 import whisper
@@ -18,12 +17,12 @@ import sounddevice as sd
 import soundfile as sf
 import numpy as np
 import queue
-import threading
 import time
+import keyboard
 
 # Whisper 모델 로드
 print("📥 Whisper 모델 로딩 중...")
-whisper_model = whisper.load_model("base")  # small, medium, large 선택 가능
+whisper_model = whisper.load_model("base")
 
 # TTS 모델 로드
 print("📤 TTS 모델 로딩 중...")
@@ -31,53 +30,17 @@ tts = TTS(model_name="tts_models/multilingual/multi-dataset/xtts_v2", progress_b
 
 # 대답 생성
 def mock_chatgpt_response(user_text):
-    # 실제 ChatGPT API 연결 대신 간단히 응답 예시
-    return f"당신이 이렇게 말했어요: '{user_text}' 좋은 하루 되세요!"
+    return f"당신이 이렇게 말했어요: '{user_text}'"
 
-# 녹음 설정
-samplerate = 16000
-channels = 1
-threshold = 500  # 음성 감지 임계값
-silence_duration = 1.0  # 무음 시간 (초 단위)
-
-q = queue.Queue()
-
-# 실시간 녹음 콜백
-def audio_callback(indata, frames, time_info, status):
-    if status:
-        print(status)
-    q.put(indata.copy())
-
-def record_dynamic(filename):
-    print("🎙️ 대기 중... (말하면 녹음 시작)")
-    recording = []
-    silence_counter = 0
-    speaking = False
-
-    with sd.InputStream(samplerate=samplerate, channels=channels, callback=audio_callback, dtype='int16'):
-        while True:
-            try:
-                data = q.get(timeout=1)
-                volume_norm = np.linalg.norm(data) * 10
-
-                if volume_norm > threshold:
-                    if not speaking:
-                        print("🎤 음성 감지! 녹음 시작")
-                        speaking = True
-                    recording.append(data)
-                    silence_counter = 0
-                else:
-                    if speaking:
-                        silence_counter += data.shape[0] / samplerate
-                        recording.append(data)
-                        if silence_counter > silence_duration:
-                            print("🛑 음성 종료 감지")
-                            break
-            except queue.Empty:
-                continue
-
-    recording = np.concatenate(recording, axis=0)
-    sf.write(filename, recording, samplerate)
+# 녹음 함수 (지정 시간 녹음)
+def record_on_keypress(filename, duration=5):
+    print("⌨️  'r' 키를 누르면 녹음이 시작됩니다.")
+    keyboard.wait('r')
+    print("🎤 녹음 중... 말하세요.")
+    recording = sd.rec(int(duration * 16000), samplerate=16000, channels=1, dtype='int16')
+    sd.wait()
+    sf.write(filename, recording, 16000)
+    print("✅ 녹음 완료.")
 
 # 음성 재생
 def play_audio(file_path):
@@ -90,8 +53,8 @@ def main():
     speaker_audio = "audio_test_ko.wav"
 
     while True:
-        # 1. 사람 말할 때까지 대기 + 녹음
-        record_dynamic(input_audio)
+        # 1. 키 입력 대기 후 녹음
+        record_on_keypress(input_audio)
 
         # 2. Whisper 변환
         print("🧠 음성 → 텍스트 변환 중...")
@@ -99,7 +62,7 @@ def main():
         user_text = result["text"]
         print(f"📝 사용자: {user_text}")
 
-        # 3. ChatGPT 답변
+        # 3. ChatGPT 응답
         response_text = mock_chatgpt_response(user_text)
         print(f"🤖 답변: {response_text}")
 
@@ -113,7 +76,7 @@ def main():
         )
         print(f"🔊 응답 생성 완료: {output_audio}")
 
-        # 5. 재생
+        # 5. 응답 재생
         play_audio(output_audio)
 
 if __name__ == "__main__":
