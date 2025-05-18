@@ -18,3 +18,4 @@
 5. pip install langdetect //text의 언어를 구별해줌
 6. pip install sounddevice //음성재생
 7. pip install openai //ChatGPT 연결
+8. pip install keyboard //키 입력 기능
