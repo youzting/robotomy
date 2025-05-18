@@ -81,3 +81,32 @@ output_test_kr.wav 파일이 출력됨
 10. 실시간 대화 시스템 코드 개선 (25.05.18)
 - realtime_chat.py 코드 개선
 - 음성 감지 기능이 너무 민감하게 작동 하여 녹음 시작 기능을 키보드 'r'키 입력 시 녹음 시작 가능하게 변경
+- realtime_chat_withGPT.py 코드 개선
+- OpenAI API 키를 이용한 ChatGPT 연결 성공
+- 아래는 실행 결과에 대한 텍스트 출력
+
+📥 Whisper 모델 로딩 중...
+📤 TTS 모델 로딩 중...
+ > tts_models/multilingual/multi-dataset/xtts_v2 is already downloaded.
+ > Using model: xtts
+GPT2InferenceModel has generative capabilities, as `prepare_inputs_for_generation` is explicitly overwritten. However, it doesn't directly inherit from `GenerationMixin`. From 👉v4.50👈 onwards, `PreTrainedModel` will NOT inherit from `GenerationMixin`, and this model will lose the ability to call `generate` and other related functions.
+  - If you're using `trust_remote_code=True`, you can get rid of this warning by loading the model with an auto class. See https://huggingface.co/docs/transformers/en/model_doc/auto#auto-classes
+  - If you are the owner of the model architecture code, please modify your model class such that it inherits from `GenerationMixin` (after `PreTrainedModel`, otherwise you'll get an exception).
+  - If you are not the owner of the model architecture class, please contact the model code owner to update it.
+🔁 대화를 시작하려면 'r', 종료하려면 'q' 키를 누르세요.
+⌨️  'r' 키를 누르면 녹음이 시작됩니다.
+🎤 녹음 중... 말하세요.
+✅ 녹음 완료.
+🧠 음성 → 텍스트 변환 중...
+C:\Users\hieto\projects\tts_venv\lib\site-packages\whisper\transcribe.py:132: UserWarning: FP16 is not supported on CPU; using FP32 instead
+  warnings.warn("FP16 is not supported on CPU; using FP32 instead")
+📝 사용자:  한국의 가수 G-Dragon에 대해서 간단히 말해줄래?
+🤖 답변: 네, G-Dragon은 대한민국의 가수이자 래퍼이자 음악 프로듀서로, K-pop 그룹인 빅뱅의 멤버이기도 합니다. 그는 자신의 독특한 음악 스타일과 창의적인 음악 작업으로  국내외에서 많은 팬들을 사로잡았으며, 한류 스타로서도 큰 인기를 얻고 있습니다. 그의 음악은 다양한 장르를 아우르며, 강렬한 퍼포먼스와 독보적인 이미지로 많은 이들에게 영감을 주고 있습니다.
+ > Text splitted to sentences.
+['네, G-Dragon은 대한민국의 가수이자 래퍼이자 음악 프로듀서로, K-pop 그룹인 빅뱅의 멤버이기도 합니다.', '그는 자신의 독특한 음악 스타일과 창의적인 음악 작업으로 국내 외에서 많은 팬들을 사로잡았으며, 한류 스타로서도 큰 인기를 얻고 있습니다.', '그의 음악은 다양한 장르를 아우르며, 강렬한 퍼포먼스와 독보적인 이미지로 많은 이들에게 영 감을 주고 있습니다.']
+The attention mask is not set and cannot be inferred from input because pad token is same as eos token. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
+ > Processing time: 160.9803490638733
+ > Real-time factor: 4.888848223928478
+🔊 응답 생성 완료: response.wav
+🔁 대화를 시작하려면 'r', 종료하려면 'q' 키를 누르세요.
+👋 종료합니다.
