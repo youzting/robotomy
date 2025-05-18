@@ -17,7 +17,7 @@ import time
 import openai
 
 # OpenAI API 키 설정
-openai.api_key = "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"
+openai.api_key = "키 입력"
 
 # Whisper 모델 로드
 print("📥 Whisper 모델 로딩 중...")
