@@ -70,10 +70,10 @@ def synthesize_speech(text):
 
     file_name = f"output_{language}.wav"
     speaker_wavs = {
-        'ja': "audio_test_jp.mp3",
+        'ja': "audio_test_ja.mp3",
         'en': "audio_test_en.mp3",
         'ko': "audio_test_ko.wav",
-        'zh-cn': "audio_test_zh.mp3"
+        'zh-cn': "audio_test_zh-cn.mp3"
     }
 
     kwargs = {
