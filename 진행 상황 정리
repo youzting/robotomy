@@ -83,7 +83,7 @@ output_test_kr.wav 파일이 출력됨
 - 음성 감지 기능이 너무 민감하게 작동 하여 녹음 시작 기능을 키보드 'r'키 입력 시 녹음 시작 가능하게 변경
 - realtime_chat_withGPT.py 코드 개선
 - OpenAI API 키를 이용한 ChatGPT 연결 성공
-- 아래는 실행 결과에 대한 텍스트 출력
+- 아래는 실행할 때의 텍스트 출력 내용
 
 📥 Whisper 모델 로딩 중...
 📤 TTS 모델 로딩 중...
@@ -110,3 +110,6 @@ The attention mask is not set and cannot be inferred from input because pad toke
 🔊 응답 생성 완료: response.wav
 🔁 대화를 시작하려면 'r', 종료하려면 'q' 키를 누르세요.
 👋 종료합니다.
+
+11. ChatGPT에 도슨트 프롬프트 적용 테스트 (25.05.25)
+- realtime_chat_withGPT.py 코드 개선
