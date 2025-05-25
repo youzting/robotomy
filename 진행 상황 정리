@@ -113,3 +113,4 @@ The attention mask is not set and cannot be inferred from input because pad toke
 
 11. ChatGPT에 도슨트 프롬프트 적용 테스트 (25.05.25)
 - realtime_chat_withGPT.py 코드 개선
+- 정확한 발음의 질문이 아닐 경우, 답변의 내용이 크게 달라지는 문제 발생
