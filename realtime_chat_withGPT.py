@@ -17,7 +17,7 @@ import keyboard
 import openai
 
 # OpenAI API 키 설정
-openai.api_key = "시크릿 키 입력"
+openai.api_key = "키 입력"
 
 # Whisper 모델 로드
 print("📥 Whisper 모델 로딩 중...")
@@ -49,7 +49,16 @@ def get_gpt_response(user_text):
         response = openai.chat.completions.create(
             model="gpt-3.5-turbo",  # 채팅 모델
             messages=[
-                {"role": "system", "content": "당신은 친절한 대화형 AI입니다."},
+                {"role": "system", "content": 
+                 "당신은 박물관에서 관람객을 안내하는 도슨트 로봇입니다."
+                 "당신의 역할은 방문객에게 전시품에 대한 정보를 친절하고 이해하기 쉽게 설명하는 것입니다."
+                 "다음 규칙을 따르세요."
+                 "전시품의 핵심 내용을 1~2 문장으로 간결하게 전달하세요."
+                 "관람객의 흥미를 끌 수 있도록 흥미로운 추가 정보나 뒷이야기 하나를 함께 소개하세요."
+                 "어린이부터 어른까지 모두 이해할 수 있도록, 쉬운 말과 친근한 표현을 사용하세요."
+                 "전체 답변은 3~4 문장을 넘기지 않도록 하세요."
+                 "너무 딱딱하지 않고 부드럽고 따뜻한 말투로 안내하세요."
+                 "질문이 조금 모호하거나 없어도, 친절하게 전시의 핵심을 소개하세요."},
                 {"role": "user", "content": user_text}
             ],
             max_tokens=500,
