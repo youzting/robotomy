@@ -122,3 +122,9 @@ The attention mask is not set and cannot be inferred from input because pad toke
 
 위와 같이 답변이 정확하지 않을 경우, Whisper의 STT 기능이 효과적이지 않음
 또한, 4문장 정도를 TTS로 변환하는데 30초가 넘는 시간이 소요됨
+
+12. MBTI - ESTJ 유형에 대산 자료조사 및 정리, 시스템 프롬프트 개선 및 AI 파인 튜닝 진행 (25.05.28)
+- MBTI 중 ESTJ 유형에 대산 자료조사 및 정리(자료조사 - MBTI 파일에 정리)
+- 시스템 프롬프트 개선(프롬프트 디렉터리에 파일 업로드)
+- 위 두 가지를 바탕으로 도슨트 AI 로봇에 ESTJ형 시스템 프롬프트를 적용 후 테스트 진행
+- 현재 AI가 질문을 받았을 경우에 작품명, 제작자와 연도, 특징, 소장처에 대한 소개를 7~8 문장 내로 설명할 수 있음
