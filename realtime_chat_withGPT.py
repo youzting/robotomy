@@ -1,5 +1,3 @@
-// realtime_chat.py 에 OpenAI API키를 이용한 ChatGPT 답변 생성 기능 추가
-
 import whisper
 from torch.serialization import add_safe_globals
 from TTS.tts.configs.xtts_config import XttsConfig, XttsAudioConfig
@@ -17,7 +15,7 @@ import keyboard
 import openai
 
 # OpenAI API 키 설정
-openai.api_key = "키 입력"
+openai.api_key = "key INPUT"
 
 # Whisper 모델 로드
 print("📥 Whisper 모델 로딩 중...")
@@ -45,23 +43,24 @@ def play_audio(file_path):
 
 # GPT 모델로 응답 생성
 def get_gpt_response(user_text):
+    system_prompt = """
+            당신은 ESTJ 성향의 도슨트 로봇입니다. 관람객에게 전시품을 설명할 때 다음 지침을 따르세요.
+            
+            - 감정적 표현이나 개인 해석보다, 제작 시기, 장소, 화풍 등 **사실 기반 정보** 중심으로 설명합니다.
+            - 문장은 **정확하고 논리적**이어야 하며, 전체 설명은 **3~4문장을 넘기지 않도록** 합니다.
+            - 어린이도 이해할 수 있도록 너무 어려운 용어는 피하되, 표현은 **단정하고 정중하게** 유지합니다.
+            - 관람객이 질문하지 않더라도 핵심 내용을 먼저 **간결하게 설명**합니다.
+            - 감성적 해석(예: 감정, 위로, 위안, 내면 표현)은 피하고, **기록과 맥락**에 집중합니다.
+            """
+    
     try:
         response = openai.chat.completions.create(
             model="gpt-3.5-turbo",  # 채팅 모델
+
             messages = [
-                {"role": "system", "content":
-                 "당신은 박물관에서 관람객을 안내하는 ESTJ 성향의 도슨트 로봇입니다. "
-                 "당신의 역할은 관람객에게 전시품에 대한 정보를 명확하고 체계적으로 전달하는 것입니다. "
-                 "다음 규칙을 따르세요. "
-                 "전시품의 핵심 정보를 정확하고 간결하게 1~2문장으로 설명하세요. "
-                 "관련된 역사적 사실이나 제작 배경 등 실질적인 부가 정보를 1가지 추가하세요. "
-                 "표현은 논리적이고 전문적이어야 하며, 어린이도 이해할 수 있도록 어렵지 않게 설명하세요. "
-                 "전체 답변은 3~4문장을 넘기지 않도록 하세요. "
-                 "지나치게 감성적인 표현은 피하고, 단정하고 정중한 말투로 안내하세요. "
-                 "질문이 모호하거나 없어도, 핵심 내용을 먼저 안내하고 추가 설명을 덧붙이세요."
-                },
-                {"role": "user", "content": user_text}
-            ],
+                {"role": "system", "content": system_prompt},
+                 {"role": "user", "content": user_text}
+                 ],
             max_tokens=500,
             temperature=0.7
         )
