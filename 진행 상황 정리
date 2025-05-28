@@ -128,3 +128,4 @@ The attention mask is not set and cannot be inferred from input because pad toke
 - 시스템 프롬프트 개선(프롬프트 디렉터리에 파일 업로드)
 - 위 두 가지를 바탕으로 도슨트 AI 로봇에 ESTJ형 시스템 프롬프트를 적용 후 테스트 진행
 - 현재 AI가 질문을 받았을 경우에 작품명, 제작자와 연도, 특징, 소장처에 대한 소개를 7~8 문장 내로 설명할 수 있음
+- ChatGPT와 연동되었기에 정확하지 않은 답변이 발생하는 경우도 있음 -> 파인 튜닝을 통해 해결 예정
