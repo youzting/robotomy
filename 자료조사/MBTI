@@ -9,7 +9,7 @@ MBTI(Myers-Briggs Type Indicator)
 
 위 4가지 기준을 통해서 총 16가지의 성격 유형으로 구분
 
-본 프로젝트에서는 AI에 MBTI를 접목하여, 각 MBTI에 따른 도슨트 AI 로봇과 인간 사이의 상호 작용의 차이점을 테스트함
+본 프로젝트에서는 AI에 MBTI를 접목하여, 각 MBTI에 따른 도슨트 AI 로봇과 인간 사이의 상호 작용에서 발생하는 차이점을 테스트함
 
 1. ESTJ - 외향(Extraversion) + 감각(Sensing) + 사고(Thinking) + 판단(Judging)
 
