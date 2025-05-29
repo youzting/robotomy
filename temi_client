@@ -1,0 +1,47 @@
+import android.os.Bundle
+import android.util.Log
+import androidx.appcompat.app.AppCompatActivity
+import java.io.*
+import java.net.ServerSocket
+import java.net.Socket
+
+class MainActivity : AppCompatActivity() {
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_main)
+
+        startSocketServer() // 앱 시작 시 서버 대기 시작
+    }
+
+    private fun startSocketServer() {
+        Thread {
+            try {
+                val serverSocket = ServerSocket(12345) // 포트 12345에서 대기
+                Log.d("TemiServer", "서버 대기 중...")
+
+                while (true) {
+                    val socket: Socket = serverSocket.accept()
+                    val reader = BufferedReader(InputStreamReader(socket.getInputStream()))
+                    val writer = PrintWriter(socket.getOutputStream(), true)
+
+                    val msg = reader.readLine()
+                    Log.d("TemiServer", "수신: $msg")
+
+                    if (msg == "CALL_TEMI") {
+                        runOnUiThread {
+                            // Temi를 호출하는 동작 수행 코드 여기에 작성
+                            Log.d("TemiServer", "사용자로부터 호출 받음!")
+                        }
+                        writer.println("OK")
+                    } else {
+                        writer.println("UNKNOWN")
+                    }
+
+                    socket.close()
+                }
+            } catch (e: Exception) {
+                Log.e("TemiServer", "서버 에러: ${e.message}")
+            }
+        }.start()
+    }
+}
