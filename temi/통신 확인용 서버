@@ -1,0 +1,84 @@
+//테미가 안드로이드 os기반으로 작동되기 때문에 안드로이드로 테스트 하려 했으나 서버가 열리지 않는 문제가 있어 C++로 서버를 열어서 통신을 확인함
+//추후 테미 어플리케이션을 개발하는 조원이랑 회의 예정
+
+#define _WINSOCK_DEPRECATED_NO_WARNINGS
+#include <winsock2.h>
+#include <ws2tcpip.h>
+#include <iostream>
+
+#pragma comment(lib, "ws2_32.lib") // 윈속 라이브러리 링크
+
+#define PORT 12345
+#define BUFFER_SIZE 1024
+
+int main() {
+    WSADATA wsaData;
+    SOCKET serverSocket, clientSocket;
+    struct sockaddr_in serverAddr, clientAddr;
+    char buffer[BUFFER_SIZE];
+    int clientSize;
+
+    // Winsock 초기화
+    if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0) {
+        std::cerr << "WSAStartup 실패" << std::endl;
+        return 1;
+    }
+
+    // 소켓 생성
+    serverSocket = socket(AF_INET, SOCK_STREAM, 0);
+    if (serverSocket == INVALID_SOCKET) {
+        std::cerr << "소켓 생성 실패" << std::endl;
+        WSACleanup();
+        return 1;
+    }
+
+    // 주소 구조체 설정
+    serverAddr.sin_family = AF_INET;
+    serverAddr.sin_addr.s_addr = INADDR_ANY; // 모든 IP에서 접속 허용
+    serverAddr.sin_port = htons(PORT);
+
+    // 바인드
+    if (bind(serverSocket, (sockaddr*)&serverAddr, sizeof(serverAddr)) == SOCKET_ERROR) {
+        std::cerr << "바인드 실패" << std::endl;
+        closesocket(serverSocket);
+        WSACleanup();
+        return 1;
+    }
+
+    // 리슨
+    if (listen(serverSocket, SOMAXCONN) == SOCKET_ERROR) {
+        std::cerr << "리슨 실패" << std::endl;
+        closesocket(serverSocket);
+        WSACleanup();
+        return 1;
+    }
+
+    std::cout << "✅ 서버 실행 중 (포트 " << PORT << ")" << std::endl;
+
+    clientSize = sizeof(clientAddr);
+    while (true) {
+        clientSocket = accept(serverSocket, (sockaddr*)&clientAddr, &clientSize);
+        if (clientSocket == INVALID_SOCKET) {
+            std::cerr << "클라이언트 연결 실패" << std::endl;
+            continue;
+        }
+
+        // 메시지 수신
+        int bytesReceived = recv(clientSocket, buffer, BUFFER_SIZE, 0);
+        if (bytesReceived > 0) {
+            buffer[bytesReceived] = '\0';
+            std::cout << "📨 받은 메시지: " << buffer << std::endl;
+
+            std::string response = "서버가 메시지 받음: ";
+            response += buffer;
+            send(clientSocket, response.c_str(), response.size(), 0);
+        }
+
+        closesocket(clientSocket);
+    }
+
+    // 정리
+    closesocket(serverSocket);
+    WSACleanup();
+    return 0;
+}
