@@ -1,0 +1,30 @@
+package com.example.temicontrolapp;
+
+import com.robotemi.sdk.Robot;
+import java.io.IOException;
+import fi.iki.elonen.NanoHTTPD;
+
+public class TemiHttpServer extends NanoHTTPD {
+
+    public TemiHttpServer() throws IOException {
+        super(8080); // 포트 번호
+        start(SOCKET_READ_TIMEOUT, false);
+        System.out.println("Temi 서버 시작됨: http://localhost:8080/");
+    }
+
+    @Override
+    public Response serve(IHTTPSession session) {
+        String uri = session.getUri();
+        System.out.println("요청 받음: " + uri);
+
+        if (uri.equals("/speak")) {
+            Robot.getInstance().speak("외부에서 받은 명령입니다!");
+            return newFixedLengthResponse("Temi가 말했습니다.");
+        } else if (uri.equals("/move")) {
+            Robot.getInstance().goTo("home base");
+            return newFixedLengthResponse("Temi가 이동합니다.");
+        } else {
+            return newFixedLengthResponse("알 수 없는 요청");
+        }
+    }
+}
