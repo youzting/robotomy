@@ -4,48 +4,62 @@ import android.os.Bundle
 import android.util.Log
 import android.widget.Button
 import androidx.appcompat.app.AppCompatActivity
-import java.io.*
-import java.net.Socket
+import java.io.BufferedReader
+import java.io.InputStreamReader
+import java.net.HttpURLConnection
+import android.widget.ProgressBar
+import android.view.View
+import java.net.URL
 
 class MainActivity : AppCompatActivity() {
 
-    private val TEMI_IP = "10.0.2.2"//안드로이드 스튜디오 에뮬레이터 ip주소
-    private val TEMI_PORT = 12345//임의 테스트 포트
+    private val TEMI_URL_BASE = "http://10.0.2.2:8080"  // Temi 서버 IP와 포트로 변경 예정
+
+    private lateinit var progressBar: ProgressBar //progressbar 추가
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
         val callButton = findViewById<Button>(R.id.button_call_temi)
-        Log.d("TemiUserApp", "callButton is null? ${callButton == null}")
+        val moveButton = findViewById<Button>(R.id.button_move_temi)
+        progressBar = findViewById(R.id.progress_bar)
 
         callButton.setOnClickListener {
-            Log.d("TemiUserApp", "버튼 클릭됨")
-            sendCallTemi()
+            Log.d("Temi", "버튼 클릭됨: /speak")
+            sendHttpRequest("/speak")
+        }
+
+        moveButton.setOnClickListener {
+            Log.d("Temi", "버튼 클릭됨: /move")
+            sendHttpRequest("/move")
         }
     }
 
-    private fun sendCallTemi() {
-        Log.d("TemiUserApp", "sendCallTemi 시작")
+    private fun sendHttpRequest(endpoint: String) {
         Thread {
             try {
-                val inet4Address = java.net.Inet4Address.getByName(TEMI_IP) as java.net.Inet4Address
-                val socket = java.net.Socket()
-                socket.connect(java.net.InetSocketAddress(inet4Address, TEMI_PORT), 5000) // 5초 타임아웃
+                val url = URL(TEMI_URL_BASE + endpoint)
+                val conn = url.openConnection() as HttpURLConnection
+                conn.requestMethod = "GET"
+                conn.connectTimeout = 5000
+                conn.readTimeout = 5000
 
-                val writer = PrintWriter(socket.getOutputStream(), true)
-                val reader = BufferedReader(InputStreamReader(socket.getInputStream()))
+                val code = conn.responseCode
+                val reader = BufferedReader(InputStreamReader(conn.inputStream))
+                val response = reader.readText()
 
-                writer.println("CALL_TEMI")
-                val response = reader.readLine()
-                Log.d("TemiUserApp", "응답 받음: $response")
+                Log.d("TemiUserApp", "응답 코드: $code, 응답: $response")
 
-                socket.close()
-                Log.d("TemiUserApp", "소켓 닫음")
+                reader.close()
+                conn.disconnect()
             } catch (e: Exception) {
-                Log.e("TemiUserApp", "에러: ${e.message}")
+                Log.e("TemiUserApp", "에러 발생: ${e.message}")
+            }finally {
+                runOnUiThread {
+                    progressBar.visibility = View.GONE  // 요청 끝나면 로딩 숨김
+                }
             }
         }.start()
     }
-
 }
