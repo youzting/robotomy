@@ -141,7 +141,7 @@ The attention mask is not set and cannot be inferred from input because pad toke
 speed=1.1,           # 약간 빠르게
 energy=1.2,          # 더 명확하게
 pitch=0.9            # 약간 낮은 음성 톤
--> 시도 결과 : xtts_v2 모델 더 이상 energy, pitch 파라미터를 사용하지 않아 오류 발생
+-> 시도 결과 : xtts_v2 모델이 더 이상 energy, pitch 파라미터를 사용하지 않아 오류 발생
 
 - xtts_v2 모델은 음성 참조 파일 "speaker_wav"를 기반으로 발화 생성
 -> 대안 : 음성 파일 후처리 또는 텍스트 스타일로 속도를 조절함
@@ -152,3 +152,9 @@ pitch=0.9            # 약간 낮은 음성 톤
 
 - 문제점: 현재 TTS 처리 시간이 실시간의 약 4배입니다 (Real-time factor: 3.93)
 -> use_cuda=True 추가(GPU 사용 시 훨씬 빨라짐)
+-> 시도 결과 : use_cuda 옵션은 최신 TTS 버전에서는 직접적으로 generate()에 넘기면 안 되는 오류 발생
+
+코드 추가 및 use_cuda 인자 삭제
+import torch
+device = "cuda" if torch.cuda.is_available() else "cpu"
+tts = TTS(model_name="tts_models/multilingual/multi-dataset/xtts_v2", progress_bar=True).to(device)
