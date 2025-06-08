@@ -2,6 +2,9 @@ package com.example.temicontrolapp;
 
 import com.robotemi.sdk.Robot;
 import java.io.IOException;
+import java.net.*;
+import java.util.Enumeration;
+
 import fi.iki.elonen.NanoHTTPD;
 
 public class TemiHttpServer extends NanoHTTPD {
@@ -9,22 +12,39 @@ public class TemiHttpServer extends NanoHTTPD {
     public TemiHttpServer() throws IOException {
         super(8080); // 포트 번호
         start(SOCKET_READ_TIMEOUT, false);
-        System.out.println("Temi 서버 시작됨: http://localhost:8080/");
+        System.out.println("✅ Temi 서버 시작됨: http://192.168.35.173:5555/speak");
     }
 
     @Override
     public Response serve(IHTTPSession session) {
         String uri = session.getUri();
-        System.out.println("요청 받음: " + uri);
+        System.out.println("📡 요청 받음: " + uri);
 
         if (uri.equals("/speak")) {
-            Robot.getInstance().speak("외부에서 받은 명령입니다!");
-            return newFixedLengthResponse("Temi가 말했습니다.");
+            Robot.getInstance().speak("외부에서 명령 도착!");
+            return newFixedLengthResponse("Temi가 speak 명령 받음");
         } else if (uri.equals("/move")) {
             Robot.getInstance().goTo("home base");
-            return newFixedLengthResponse("Temi가 이동합니다.");
+            return newFixedLengthResponse("Temi가 move 명령 받음");
         } else {
-            return newFixedLengthResponse("알 수 없는 요청");
+            return newFixedLengthResponse("❗ 알 수 없는 명령: " + uri);
         }
+    }
+
+    private String getDeviceIpAddress() {
+        try {
+            for (Enumeration<NetworkInterface> en = NetworkInterface.getNetworkInterfaces(); en.hasMoreElements();) {
+                NetworkInterface intf = en.nextElement();
+                for (Enumeration<InetAddress> enumIpAddr = intf.getInetAddresses(); enumIpAddr.hasMoreElements();) {
+                    InetAddress inetAddress = enumIpAddr.nextElement();
+                    if (!inetAddress.isLoopbackAddress() && inetAddress instanceof Inet4Address) {
+                        return inetAddress.getHostAddress();
+                    }
+                }
+            }
+        } catch (SocketException ex) {
+            ex.printStackTrace();
+        }
+        return "localhost";
     }
 }
