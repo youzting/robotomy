@@ -130,7 +130,7 @@ The attention mask is not set and cannot be inferred from input because pad toke
 - 현재 AI가 질문을 받았을 경우에 작품명, 제작자와 연도, 특징, 소장처에 대한 소개를 7~8 문장 내로 설명할 수 있음
 - ChatGPT와 연동되었기에 정확하지 않은 답변이 발생하는 경우도 있음 -> 파인 튜닝을 통해 해결 예정
 
-13. MBTI - ESTJ 유형의 시스템 프롬프트 개선, TTS 처리 속도 개선 (25.06.08)
+13. MBTI - ESTJ 유형의 시스템 프롬프트 개선, whisper 모델 변경, GPU 환경 사용, Whisper 및 TTS 처리 속도 개선 (25.06.08)
 - ESTJ의 설명 시 목소리 특징
 톤 - 낮고 단호하거나 약간 높은 중저음으로 명확하게 전달함
 속도 - 보통에서 빠른 속도로 논리적인 순서에 따라 말함
@@ -145,16 +145,61 @@ pitch=0.9            # 약간 낮은 음성 톤
 
 - xtts_v2 모델은 음성 참조 파일 "speaker_wav"를 기반으로 발화 생성
 -> 대안 : 음성 파일 후처리 또는 텍스트 스타일로 속도를 조절함
+
 - 시스템 프롬프트 개선(자연스러운 설명 진행)
 - 잘못된 응답 연결 방지를 위한 조건 추가
 -> "작품명이 명확하지 않거나, 존재하지 않는 항목일 경우, 유사한 항목이 있으면 그에 대해 설명하세요. 유사 항목도 없을 경우 "자료가 없습니다"라고 답변하세요."
-- "천지창조", "최후의 만찬", "천사" 등은 종교 회화의 주제로 간주하고, 일반적으로 잘 알려진 작품으로 연결하여 설명합니다.
 
-- 문제점: 현재 TTS 처리 시간이 실시간의 약 4배입니다 (Real-time factor: 3.93)
--> use_cuda=True 추가(GPU 사용 시 훨씬 빨라짐)
--> 시도 결과 : use_cuda 옵션은 최신 TTS 버전에서는 직접적으로 generate()에 넘기면 안 되는 오류 발생
+- 기존 사용 whisper 모델 : base
+-> tiny 사용 결과: 응답 속도 빠름, 하지만 품질이 너무 저하됨
+-> small 사용 결과: 응답 속도 보통, 품질 보통
+-> small로 모델 변경
 
-코드 추가 및 use_cuda 인자 삭제
-import torch
-device = "cuda" if torch.cuda.is_available() else "cpu"
-tts = TTS(model_name="tts_models/multilingual/multi-dataset/xtts_v2", progress_bar=True).to(device)
+- 현재 실행 결과
+📥 Whisper 모델 로딩 중...
+📤 TTS 모델 로딩 중...
+ > tts_models/multilingual/multi-dataset/xtts_v2 is already downloaded.
+ > Using model: xtts
+GPT2InferenceModel has generative capabilities, as `prepare_inputs_for_generation` is explicitly overwritten. However, it doesn't directly inherit from `GenerationMixin`. From 👉v4.50👈 onwards, `PreTrainedModel` will NOT inherit from `GenerationMixin`, and this model will lose the ability to call `generate` and other related functions.
+  - If you're using `trust_remote_code=True`, you can get rid of this warning by loading the model with an auto class. See https://huggingface.co/docs/transformers/en/model_doc/auto#auto-classes
+  - If you are the owner of the model architecture code, please modify your model class such that it inherits from `GenerationMixin` (after `PreTrainedModel`, otherwise you'll get an exception).
+  - If you are not the owner of the model architecture class, please contact the model code owner to update it.
+🔁 대화를 시작하려면 'r', 종료하려면 'q' 키를 누르세요.
+⌨️  'r' 키를 누르면 녹음이 시작됩니다.
+🎤 녹음 중... 말하세요.
+✅ 녹음 완료.
+🧠 음성 → 텍스트 변환 중...
+C:\Users\hieto\projects\tts_venv\lib\site-packages\whisper\transcribe.py:132: UserWarning: FP16 is not supported on CPU; using FP32 instead
+  warnings.warn("FP16 is not supported on CPU; using FP32 instead")
+📝 사용자:  미켈란 제로의 천지 창조에 대해서 설명해줘
+🤖 답변: 천지 창조는 미켈란젤로 부오나로티에 의해 제작된 조각 작품으로, 1508년에서 1512년 사이에 만들어졌습니다. 이 작품은 성경에 기반을 둔 건축 조각이며, 미켈란젤로 가 최고의 예술작품 중 하나로 꼽히는 작품 중 하나입니다. 천지 창조는 신이 아담에게 생명을 불어넣는 장면을 형상화한 것으로 유명하며, 미켈란젤로의 뛰어난 해부학적 지식과 조각 기술이 돋보입니다. 이 작품은 현재 바티칸 시티 소장품으로 전시되고 있습니다.
+ > Text splitted to sentences.
+['천지 창조는 미켈란젤로 부오나로티에 의해 제작된 조각 작품으로, 1508년에서 1512년 사이에 만들어졌습니다.', '이 작품은 성경에 기반을 둔 건축 조각이며, 미켈란젤로가 최고의 예술작품 중 하나로 꼽히는 작품 중 하나입니다.', '천지 창조는 신이 아담에게 생명을 불어넣는 장면을 형상화한 것으로 유명하며, 미켈란젤로의 뛰어난 해부학적 지식과  조각 기술이 돋보입니다.', '이 작품은 현재 바티칸 시티 소장품으로 전시되고 있습니다.']
+The attention mask is not set and cannot be inferred from input because pad token is same as eos token. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
+ > Processing time: 189.40400314331055
+ > Real-time factor: 4.097682760312007
+🔊 응답 생성 완료: response.wav
+🔁 대화를 시작하려면 'r', 종료하려면 'q' 키를 누르세요.
+⌨️  'r' 키를 누르면 녹음이 시작됩니다.
+🎤 녹음 중... 말하세요.
+✅ 녹음 완료.
+🧠 음성 → 텍스트 변환 중...
+📝 사용자:  고려청자에 대해서 설명해줘
+🤖 답변: 고려청자는 고려시대에 제작된 도자기로, 주로 백자나 청자로 알려져 있습니다. 고려청자는 10~14세기에 많이 제작되었으며, 순백색이나 연녹색, 청록색 등의 색감을 가지고 있습니다. 주로 꽃무늬나 조각, 글씨 등이 섬세하게 그려져 있습니다. 고려청자는 주로 궁중에서 사용되었으며, 고려시대의 세련된 미를 엿볼 수 있는 작품으로 소장되어 있습니다.
+ > Text splitted to sentences.
+['고려청자는 고려시대에 제작된 도자기로, 주로 백자나 청자로 알려져 있습니다.', '고려청자는 10~14세기에 많이 제작되었으며, 순백색이나 연녹색, 청록색 등의 색감을 가지고 있습니다.', '주로 꽃무늬나 조각, 글씨 등이 섬세하게 그려져 있습니다.', '고려청자는 주로 궁중에서 사용되었으며, 고려시대의 세련된 미를 엿볼 수 있는 작품으로 소장되어 있습니다.']
+ > Processing time: 164.82572031021118
+ > Real-time factor: 4.526712750149657
+🔊 응답 생성 완료: response.wav
+🔁 대화를 시작하려면 'r', 종료하려면 'q' 키를 누르세요.
+👋 종료합니다.
+
+- 분석:
+MBTI-ESTJ 유형의 설명 방식을 잘 따라감.
+작품명, 제작자 및 연도, 특징, 소장처 설명을 잘 하고 있음.
+Real-time factor가 너무 큼, 실행 시간이 오래 걸림.
+
+- 현재 노트북 사양:
+GeForce GTX 1650 with Max-Q Design
+
+- PyTorch GPU 버전 설치
