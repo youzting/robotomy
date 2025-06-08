@@ -130,7 +130,7 @@ The attention mask is not set and cannot be inferred from input because pad toke
 - 현재 AI가 질문을 받았을 경우에 작품명, 제작자와 연도, 특징, 소장처에 대한 소개를 7~8 문장 내로 설명할 수 있음
 - ChatGPT와 연동되었기에 정확하지 않은 답변이 발생하는 경우도 있음 -> 파인 튜닝을 통해 해결 예정
 
-13. MBTI - ESTJ 유형의 TTS 개선 (25.06.08)
+13. MBTI - ESTJ 유형의 TTS 및 시스템 프롬프트 개선 (25.06.08)
 - ESTJ의 설명 시 목소리 특징
 톤 - 낮고 단호하거나 약간 높은 중저음으로 명확하게 전달함
 속도 - 보통에서 빠른 속도로 논리적인 순서에 따라 말함
