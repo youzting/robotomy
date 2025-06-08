@@ -203,3 +203,5 @@ Real-time factor가 너무 큼, 실행 시간이 오래 걸림.
 GeForce GTX 1650 with Max-Q Design
 
 - PyTorch GPU 버전 설치
+- Whisper 모델 load 시 cuda 명시
+- TTS 모델 load 시 gpu=True 명시
