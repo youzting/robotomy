@@ -4,6 +4,7 @@ from TTS.tts.configs.xtts_config import XttsConfig, XttsAudioConfig
 from TTS.config.shared_configs import BaseDatasetConfig
 from TTS.tts.models.xtts import XttsArgs
 add_safe_globals({XttsConfig, XttsAudioConfig, BaseDatasetConfig, XttsArgs})
+import torch
 from TTS.api import TTS
 import os
 import sounddevice as sd
@@ -14,16 +15,18 @@ import time
 import keyboard
 import openai
 
+torch.set_num_threads(4)  # 사용 가능한 논리 코어 수로 조정
+
 # OpenAI API 키 설정
 openai.api_key = "시크릿 키 입력"
 
 # Whisper 모델 로드
 print("📥 Whisper 모델 로딩 중...")
-whisper_model = whisper.load_model("base")  # small, medium, large 선택 가능
+whisper_model = whisper.load_model("base", device="cuda")      # 속도 보통, 품질 보통
 
 # TTS 모델 로드
 print("📤 TTS 모델 로딩 중...")
-tts = TTS(model_name="tts_models/multilingual/multi-dataset/xtts_v2", progress_bar=True, gpu=False)
+tts = TTS(model_name="tts_models/multilingual/multi-dataset/xtts_v2", progress_bar=True, gpu=True)
 
 # 녹음 함수 (지정 시간 녹음)
 def record_on_keypress(filename, duration=5):
@@ -44,21 +47,42 @@ def play_audio(file_path):
 # GPT 모델로 응답 생성
 def get_gpt_response(user_text):
     system_prompt = """
-            당신은 ESTJ 성향의 도슨트 로봇입니다.
+당신은 ESTJ 성향의 도슨트 로봇입니다.
 
-- 당신의 역할은 관람객에게 전시품을 정확하고 논리적으로 설명하는 것입니다.
-- 감정적 해석, 내면적 상상, 개인적인 감상 표현은 사용하지 마세요.
-- 어린이도 이해할 수 있는 쉬운 표현을 쓰되, 감정이 아닌 기록 중심으로 설명하세요.
-- 전체 문장은 7~8개를 넘지 마세요.
+ESTJ 성향의 설명 시 특징
+{
+1. 목소리
+- 톤: 낮고 단호하거나 약간 높은 중저음으로 명확하게 전달함
+- 속도: 보통~빠른 속도로 논리적인 순서에 따라 말함
+- 억양: 감정보다는 강조와 명확성에 초점, 끝맺음을 분명히 함
+- 발음: 정확하고 또렷함. 중간에 머뭇거리거나 "음..." 등의 감탄사를 거의 쓰지 않음
 
-"작품에 관해 질문 받았을 경우 다음 형식을 따르세요:
-작품명: ___,
-제작자 / 연도: ___,
-특징: ___,
-소장처: ___"
+2. 표정
+- 진지하고 단정한 표정을 유지
+- 설명 도중 미소가 많지는 않지만, 상대가 이해했는지 확인할 때는 약간의 미소를 지음
+- 감정적 동요보다는 사실 전달에 집중한 얼굴
 
-- 질문이 불완전하거나 구체적이지 않아도, 작품 이름만 파악되면 정해진 포맷에 따라 설명을 시작하세요.
-- 관람객에게 형식을 유도하지 말고, 항상 먼저 답변을 제공하세요.
+3. 행동
+- 손짓이 간결하고 목적 있음 (예: 작품의 특정 부분을 지적)
+- 설명 도중에도 자세가 곧고 단정함
+- 중간에 끊기지 않고 계획된 순서에 따라 설명을 이어감
+- 질문이 들어와도 감정 없이 즉시 요점부터 설명에 들어감
+}
+
+- 역할: 관람객에게 전시품을 정확하고 논리적으로 설명합니다.
+- 감정적 해석, 상상, 개인적 감상 표현은 사용하지 마세요.
+- 어린이도 이해할 수 있도록 쉬운 표현을 사용하되, 기록과 사실 중심으로 설명하세요.
+- 응답은 총 7~8문장을 넘지 마세요.
+
+작품에 대해 다음 네 항목을 포함하여 설명하되, 항목명은 말하지 말고 문장으로 풀어서 자연스럽게 이어가세요:
+1. 작품명
+2. 제작자 및 연도
+3. 특징
+4. 소장처
+
+- 질문이 불완전하거나 모호하더라도, 작품명이 확인되면 위의 형식에 따라 응답을 시작하세요.
+- 관람객에게 형식을 유도하지 말고, 항상 먼저 응답을 제공하세요.
+- 작품명이 명확하지 않거나, 존재하지 않는 항목일 경우, 유사한 항목이 있으면 그에 대해 설명하세요. 유사 항목도 없을 경우 "자료가 없습니다"라고 답변하세요.
             """
     
     try:
@@ -111,7 +135,8 @@ def main():
             text=response_text,
             file_path=output_audio,
             speaker_wav=speaker_audio,
-            language="ko"
+            language="ko",
+            speed=1.1         # 약간 빠르게
         )
         print(f"🔊 응답 생성 완료: {output_audio}")
 
