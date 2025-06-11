@@ -37,6 +37,28 @@
         android:textSize="18sp"
         android:padding="12dp"
     />
+    <Button
+        android:id="@+id/button_qr_scan"
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:text="QR 코드로 호출"
+        android:layout_marginTop="12dp"
+        android:backgroundTint="@color/purple_500"
+        android:textColor="#FFFFFF"
+        android:textSize="18sp"
+        android:padding="12dp"/>
+
+    <TextView
+        android:id="@+id/text_qr_result"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="QR 결과가 여기에 표시"
+        android:textSize="16sp"
+        android:textColor="@android:color/black"
+        android:padding="16dp"
+        android:layout_marginTop="12dp"/>
+
+
     <ProgressBar
         android:id="@+id/progress_bar"
         android:layout_width="wrap_content"
@@ -46,5 +68,3 @@
         android:layout_marginTop="20dp" />
 
 </LinearLayout>
-//progresbar 추가(서버 진행 상태 표시)
-//textview추가
