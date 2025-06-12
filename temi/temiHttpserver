@@ -1,16 +1,16 @@
 package com.example.temicontrolapp;
 
+// import com.robotemi.sdk.communication.TtsRequest;  // 주석처리 (Temi SDK 연동 후 다시 사용 가능)
 import com.robotemi.sdk.Robot;
 import java.io.IOException;
 import java.net.*;
 import java.util.Enumeration;
-
 import fi.iki.elonen.NanoHTTPD;
 
 public class TemiHttpServer extends NanoHTTPD {
 
     public TemiHttpServer() throws IOException {
-        super(8080); // 포트 번호
+        super(8080);
         start(SOCKET_READ_TIMEOUT, false);
         System.out.println("✅ Temi 서버 시작됨: http://192.168.35.173:5555/speak");
     }
@@ -21,8 +21,9 @@ public class TemiHttpServer extends NanoHTTPD {
         System.out.println("📡 요청 받음: " + uri);
 
         if (uri.equals("/speak")) {
-            Robot.getInstance().speak("외부에서 명령 도착!");
-            return newFixedLengthResponse("Temi가 speak 명령 받음");
+            // Robot.getInstance().speak(TtsRequest.create("외부에서 명령 도착!", false));  // Temi SDK 연동 후 주석 해제 예정
+            System.out.println("✅ Temi speak 요청 (현재는 주석처리 상태)");
+            return newFixedLengthResponse("Temi가 speak 명령 받음 (현재는 테스트용)");
         } else if (uri.equals("/move")) {
             Robot.getInstance().goTo("home base");
             return newFixedLengthResponse("Temi가 move 명령 받음");
