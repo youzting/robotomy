@@ -14,11 +14,17 @@ import queue
 import time
 import keyboard
 import openai
+import re
+
+def split_sentences(text):
+    # 마침표, 느낌표, 물음표 등을 기준으로 문장을 나눔
+    sentences = re.split(r'(?<=[.!?])\s+', text.strip())
+    return [s for s in sentences if s]
 
 torch.set_num_threads(4)  # 사용 가능한 논리 코어 수로 조정
 
 # OpenAI API 키 설정
-openai.api_key = "시크릿 키 입력"
+openai.api_key = "시크릿 키"
 
 # Whisper 모델 로드
 print("📥 Whisper 모델 로딩 중...")
@@ -75,10 +81,10 @@ ESTJ 성향의 설명 시 특징
 - 응답은 총 7~8문장을 넘지 마세요.
 
 작품에 대해 다음 네 항목을 포함하여 설명하되, 항목명은 말하지 말고 문장으로 풀어서 자연스럽게 이어가세요:
-1. 작품명
-2. 제작자 및 연도
-3. 특징
-4. 소장처
+작품명,
+제작자 및 연도,
+특징,
+소장처
 
 - 질문이 불완전하거나 모호하더라도, 작품명이 확인되면 위의 형식에 따라 응답을 시작하세요.
 - 관람객에게 형식을 유도하지 말고, 항상 먼저 응답을 제공하세요.
@@ -121,7 +127,7 @@ def main():
 
         # 2. Whisper 음성 → 텍스트
         print("🧠 음성 → 텍스트 변환 중...")
-        result = whisper_model.transcribe(input_audio)
+        result = whisper_model.transcribe(input_audio, language="ko")
         user_text = result["text"]
         print(f"📝 사용자: {user_text}")
 
@@ -130,18 +136,23 @@ def main():
         print(f"🤖 답변: {response_text}")
 
         # 4. TTS 응답 음성 생성
-        output_audio = "response.wav"
-        tts.tts_to_file(
-            text=response_text,
-            file_path=output_audio,
-            speaker_wav=speaker_audio,
-            language="ko",
-            speed=1.1         # 약간 빠르게
-        )
-        print(f"🔊 응답 생성 완료: {output_audio}")
+        # 답변을 문장 단위로 분리
+        sentences = split_sentences(response_text)
 
-        # 5. 응답 음성 재생
-        play_audio(output_audio)
+        output_audio = "response.wav"
+        # 각 문장을 순차적으로 처리 (메모리 절약)
+        for i, sentence in enumerate(sentences):
+            print(f"🗣️ 문장 {i+1}: {sentence}")
+            tts.tts_to_file(
+                text=sentence,
+                file_path=output_audio,
+                speaker_wav=speaker_audio,
+                language="ko",
+                speed=1.1  # 약간 빠르게
+            )
+            # 응답 음성 재생
+            play_audio(output_audio)
+            torch.cuda.empty_cache()  # 메모리 캐시 해제
 
 if __name__ == "__main__":
     main()
