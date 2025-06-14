@@ -1,0 +1,122 @@
+#define _WINSOCK_DEPRECATED_NO_WARNINGS
+#include <winsock2.h>
+#include <ws2tcpip.h>
+#include <windows.h>
+#include <iostream>
+#include <cstdlib>
+
+#pragma comment(lib, "ws2_32.lib")
+
+#define PORT 12345
+#define BUFFER_SIZE 1024
+
+const char* VIDEO1_PATH = "\"C:\\Users\\yomma\\OneDrive\\Desktop\\새 폴더\\angry_smooth.mp4\"";
+const char* VIDEO2_PATH = "\"C:\\Users\\yomma\\OneDrive\\Desktop\\새 폴더\\happy_smooth.mp4\"";
+const char* VIDEO3_PATH = "\"C:\\Users\\yomma\\OneDrive\\Desktop\\새 폴더\\sad_smooth.mp4\"";
+
+void playVideo(const char* videoPath) {
+    std::string cmd = "start \"\" ";
+    cmd += videoPath;
+    system(cmd.c_str());
+}
+
+int main() {
+    WSADATA wsaData;
+    SOCKET serverSocket, clientSocket;
+    struct sockaddr_in serverAddr, clientAddr;
+    char buffer[BUFFER_SIZE];
+    int clientSize;
+
+    // Winsock 초기화
+    if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0) {
+        std::cerr << "WSAStartup 실패" << std::endl;
+        return 1;
+    }
+
+    // 소켓 생성
+    serverSocket = socket(AF_INET, SOCK_STREAM, 0);
+    if (serverSocket == INVALID_SOCKET) {
+        std::cerr << "소켓 생성 실패" << std::endl;
+        WSACleanup();
+        return 1;
+    }
+
+    // 주소 구조체 설정
+    serverAddr.sin_family = AF_INET;
+    serverAddr.sin_addr.s_addr = INADDR_ANY;
+    serverAddr.sin_port = htons(PORT);
+
+    // 바인드
+    if (bind(serverSocket, (sockaddr*)&serverAddr, sizeof(serverAddr)) == SOCKET_ERROR) {
+        std::cerr << "바인드 실패" << std::endl;
+        closesocket(serverSocket);
+        WSACleanup();
+        return 1;
+    }
+
+    // 리슨
+    if (listen(serverSocket, SOMAXCONN) == SOCKET_ERROR) {
+        std::cerr << "리슨 실패" << std::endl;
+        closesocket(serverSocket);
+        WSACleanup();
+        return 1;
+    }
+
+    std::cout << "✅ 서버 실행 중 (포트 " << PORT << ")" << std::endl;
+
+    // 서버 실행과 동시에 angry_smooth.mp4 실행
+    std::cout << "▶️ angry_smooth.mp4 실행..." << std::endl;
+    playVideo(VIDEO1_PATH);
+
+    clientSize = sizeof(clientAddr);
+    while (true) {
+        std::cout << "💤 클라이언트 연결 대기 중..." << std::endl;
+
+        clientSocket = accept(serverSocket, (sockaddr*)&clientAddr, &clientSize);
+        if (clientSocket == INVALID_SOCKET) {
+            std::cerr << "클라이언트 연결 실패" << std::endl;
+            continue;
+        }
+
+        std::cout << "🔗 클라이언트 연결 성공!" << std::endl;
+
+        // happy_smooth.mp4로 변경 실행 (기존 영상은 자동 종료되지 않음)
+        std::cout << "▶️ happy_smooth.mp4 실행..." << std::endl;
+        playVideo(VIDEO2_PATH);
+
+        bool keepRunning = true;
+        while (keepRunning) {
+            int bytesReceived = recv(clientSocket, buffer, BUFFER_SIZE, 0);
+            if (bytesReceived > 0) {
+                buffer[bytesReceived] = '\0';
+                std::cout << "📨 받은 메시지: " << buffer << std::endl;
+
+                // "sad" 받으면 sad_smooth 실행
+                if (strcmp(buffer, "sad") == 0) {
+                    std::cout << "▶️ sad_smooth.mp4 실행..." << std::endl;
+                    playVideo(VIDEO3_PATH);
+                }
+
+                if (strcmp(buffer, "exit") == 0) {
+                    std::cout << "❌ 클라이언트 종료 요청 받음. 연결 종료." << std::endl;
+                    keepRunning = false;
+                }
+
+                std::string response = "서버가 메시지 받음: ";
+                response += buffer;
+                send(clientSocket, response.c_str(), response.size(), 0);
+            }
+            else {
+                std::cout << "⚠️ 클라이언트 연결 종료 감지." << std::endl;
+                keepRunning = false;
+            }
+        }
+
+        closesocket(clientSocket);
+        std::cout << "🔄 클라이언트 소켓 닫힘. 다음 연결 대기 중...\n" << std::endl;
+    }
+
+    closesocket(serverSocket);
+    WSACleanup();
+    return 0;
+}
