@@ -15,6 +15,7 @@ import time
 import keyboard
 import openai
 import re
+import gc
 
 def split_sentences(text):
     # 마침표, 느낌표, 물음표 등을 기준으로 문장을 나눔
@@ -28,11 +29,12 @@ openai.api_key = "시크릿 키"
 
 # Whisper 모델 로드
 print("📥 Whisper 모델 로딩 중...")
-whisper_model = whisper.load_model("base", device="cuda")      # 속도 보통, 품질 보통
+whisper_model = whisper.load_model("small")      # 속도 보통, 품질 좋음
 
 # TTS 모델 로드
 print("📤 TTS 모델 로딩 중...")
-tts = TTS(model_name="tts_models/multilingual/multi-dataset/xtts_v2", progress_bar=True, gpu=True)
+tts = TTS(model_name="tts_models/multilingual/multi-dataset/xtts_v2", progress_bar=False)
+tts.to("cpu")
 
 # 녹음 함수 (지정 시간 녹음)
 def record_on_keypress(filename, duration=5):
@@ -127,7 +129,7 @@ def main():
 
         # 2. Whisper 음성 → 텍스트
         print("🧠 음성 → 텍스트 변환 중...")
-        result = whisper_model.transcribe(input_audio, language="ko")
+        result = whisper_model.transcribe(input_audio, language="ko", temperature=0, beam_size=5)
         user_text = result["text"]
         print(f"📝 사용자: {user_text}")
 
@@ -147,12 +149,12 @@ def main():
                 text=sentence,
                 file_path=output_audio,
                 speaker_wav=speaker_audio,
-                language="ko",
-                speed=1.1  # 약간 빠르게
+                language = "ko",
+                speed=1.2  # 약간 빠르게
             )
             # 응답 음성 재생
             play_audio(output_audio)
-            torch.cuda.empty_cache()  # 메모리 캐시 해제
+            gc.collect()
 
 if __name__ == "__main__":
     main()
