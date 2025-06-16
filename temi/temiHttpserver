@@ -54,8 +54,6 @@ public class TemiHttpServer extends NanoHTTPD {
 
 테스트 서버
 
-server.py
-
 import socket
 import os
 import subprocess
@@ -114,14 +112,13 @@ def main():
                     print(f"📨 받은 메시지: {message}")
 
                     if message == "speak":
-                        # 별도 스레드에서 실행하여 서버 멈춤 방지
                         threading.Thread(target=run_chat_script, daemon=True).start()
                         client_socket.sendall("대화 스크립트 실행 시작\n".encode('utf-8'))
                         response = f"서버가 메시지 받음: {message}\n"
                         client_socket.sendall(response.encode('utf-8'))
 
                     elif message == "move":
-                        response = f"도슨트 로봇이 도착했습니다.\n"
+                        response = "도슨트 로봇이 도착했습니다.\n"
                         client_socket.sendall(response.encode('utf-8'))
 
                     elif message == "exit":
@@ -130,6 +127,11 @@ def main():
 
             except Exception as e:
                 print(f"❗ 통신 중 오류 발생: {e}")
+                try:
+                    client_socket.sendall("⚠️ 서버 오류 발생. 다시 시도해주세요.\n".encode('utf-8'))
+                except:
+                    print("❗ 클라이언트에게 오류 메시지 전송 실패")
+
             finally:
                 client_socket.close()
                 print("🔄 클라이언트 소켓 닫힘. 다음 연결 대기 중...\n")
@@ -142,3 +144,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
