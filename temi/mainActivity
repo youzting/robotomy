@@ -1,0 +1,32 @@
+package com.example.temicontrolapp;
+import com.example.temicontrolapp.TemiHttpServer;
+import android.os.Bundle;
+import androidx.appcompat.app.AppCompatActivity;
+
+import com.robotemi.sdk.Robot;
+
+import java.io.IOException;
+
+public class MainActivity extends AppCompatActivity {
+
+    private Robot robot;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+
+        // Temi SDK 객체 가져오기
+        robot = Robot.getInstance();
+
+        // Temi 앱 실행 메시지 출력 (말은 안 함)
+        System.out.println("✅ Temi 앱이 실행되었습니다.");
+
+        // HTTP 서버 시작
+        try {
+            TemiHttpServer server = new TemiHttpServer();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+}

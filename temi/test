@@ -1,0 +1,118 @@
+#define _WINSOCK_DEPRECATED_NO_WARNINGS
+#include <winsock2.h>
+#include <ws2tcpip.h>
+#include <windows.h>
+#include <iostream>
+#include <string>
+
+#pragma comment(lib, "ws2_32.lib")
+
+#define PORT 12345
+#define BUFFER_SIZE 1024
+
+const char* VIDEO1_PATH = "\"C:\\Users\\yomma\\OneDrive\\Desktop\\새 폴더\\angry_smooth.mp4\"";
+const char* VIDEO2_PATH = "\"C:\\Users\\yomma\\OneDrive\\Desktop\\새 폴더\\happy_smooth.mp4\"";
+const char* VIDEO3_PATH = "\"C:\\Users\\yomma\\OneDrive\\Desktop\\새 폴더\\sad_smooth.mp4\"";
+
+void playVideo(const char* videoPath) {
+    std::string cmd = "start \"\" ";
+    cmd += videoPath;
+    system(cmd.c_str());
+}
+
+DWORD WINAPI ClientHandler(LPVOID clientSock) {
+    SOCKET clientSocket = *(SOCKET*)clientSock;
+    char buffer[BUFFER_SIZE];
+
+    std::cout << "🔗 클라이언트 스레드 시작됨!" << std::endl;
+    playVideo(VIDEO2_PATH);
+
+    bool keepRunning = true;
+    while (keepRunning) {
+        int bytesReceived = recv(clientSocket, buffer, BUFFER_SIZE - 1, 0);
+        if (bytesReceived > 0) {
+            buffer[bytesReceived] = '\0';
+            std::string message(buffer);
+            std::cout << "📨 받은 메시지: " << message << std::endl;
+
+            if (message == "sad") {
+                std::cout << "▶️ sad_smooth.mp4 실행..." << std::endl;
+                playVideo(VIDEO3_PATH);
+            }
+            else if (message == "exit") {
+                std::cout << "❌ 클라이언트 종료 요청. 스레드 종료." << std::endl;
+                keepRunning = false;
+            }
+            else {
+                std::cout << "⚠️ 알 수 없는 명령. 무시함: " << message << std::endl;
+                std::string warning = "⚠️ 지원하지 않는 명령입니다.\n";
+                send(clientSocket, warning.c_str(), warning.size(), 0);
+            }
+        }
+        else {
+            std::cout << "⚠️ 클라이언트 연결 종료 감지." << std::endl;
+            keepRunning = false;
+        }
+    }
+
+    closesocket(clientSocket);
+    std::cout << "🔚 클라이언트 스레드 종료\n" << std::endl;
+    return 0;
+}
+
+int main() {
+    WSADATA wsaData;
+    SOCKET serverSocket, clientSocket;
+    struct sockaddr_in serverAddr, clientAddr;
+    int clientSize = sizeof(clientAddr);
+
+    if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0) {
+        std::cerr << "WSAStartup 실패" << std::endl;
+        return 1;
+    }
+
+    serverSocket = socket(AF_INET, SOCK_STREAM, 0);
+    if (serverSocket == INVALID_SOCKET) {
+        std::cerr << "소켓 생성 실패" << std::endl;
+        WSACleanup();
+        return 1;
+    }
+
+    serverAddr.sin_family = AF_INET;
+    serverAddr.sin_addr.s_addr = INADDR_ANY;
+    serverAddr.sin_port = htons(PORT);
+
+    if (bind(serverSocket, (sockaddr*)&serverAddr, sizeof(serverAddr)) == SOCKET_ERROR) {
+        std::cerr << "바인드 실패" << std::endl;
+        closesocket(serverSocket);
+        WSACleanup();
+        return 1;
+    }
+
+    if (listen(serverSocket, SOMAXCONN) == SOCKET_ERROR) {
+        std::cerr << "리슨 실패" << std::endl;
+        closesocket(serverSocket);
+        WSACleanup();
+        return 1;
+    }
+
+    std::cout << "✅ 서버 실행 중 (포트 " << PORT << ")" << std::endl;
+    std::cout << "▶️ angry_smooth.mp4 실행..." << std::endl;
+    playVideo(VIDEO1_PATH);
+
+    while (true) {
+        std::cout << "💤 클라이언트 연결 대기 중..." << std::endl;
+        clientSocket = accept(serverSocket, (sockaddr*)&clientAddr, &clientSize);
+        if (clientSocket == INVALID_SOCKET) {
+            std::cerr << "❌ 클라이언트 연결 실패" << std::endl;
+            continue;
+        }
+
+        std::cout << "🙋 클라이언트 연결됨! 스레드로 처리합니다." << std::endl;
+        CreateThread(NULL, 0, ClientHandler, &clientSocket, 0, NULL);
+    }
+
+    closesocket(serverSocket);
+    WSACleanup();
+    return 0;
+}

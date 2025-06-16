@@ -1,0 +1,134 @@
+import socket
+import threading
+import whisper
+import subprocess
+import soundfile as sf
+import sounddevice as sd
+from TTS.api import TTS
+import torch
+import openai
+import re
+import keyboard
+
+# 📌 OpenAI 키
+openai.api_key = "YOUR_OPENAI_API_KEY"
+
+# 📌 Whisper + TTS 모델 초기화
+print("📥 Whisper 모델 로딩 중...")
+whisper_model = whisper.load_model("base", device="cuda")
+
+print("📤 TTS 모델 로딩 중...")
+tts = TTS(model_name="tts_models/multilingual/multi-dataset/xtts_v2", gpu=True)
+
+# 📁 감정 영상 경로
+VIDEO_PATHS = {
+    "happy": "happy_smooth.mp4",
+    "sad": "sad_smooth.mp4",
+    "angry": "angry_smooth.mp4"
+}
+
+# 🔊 TTS 음성 재생
+def speak(text, speaker_audio="audio_test_ko.wav"):
+    print(f"🗣️ TTS 출력: {text}")
+    output_path = "response.wav"
+    tts.tts_to_file(
+        text=text,
+        file_path=output_path,
+        speaker_wav=speaker_audio,
+        language="ko",
+        speed=1.1
+    )
+    data, rate = sf.read(output_path)
+    sd.play(data, rate)
+    sd.wait()
+
+# 🎥 감정 영상 재생
+def play_video(video_file):
+    subprocess.Popen(["start", "", video_file], shell=True)
+
+# 🎧 Whisper 음성 → 텍스트
+def record_and_transcribe(duration=5):
+    print("⌨️ 'r' 키를 누르면 녹음 시작")
+    keyboard.wait('r')
+    print("🎙️ 녹음 중...")
+    rec = sd.rec(int(duration * 16000), samplerate=16000, channels=1, dtype='int16')
+    sd.wait()
+    sf.write("input.wav", rec, 16000)
+    print("📤 Whisper 텍스트 변환...")
+    result = whisper_model.transcribe("input.wav", language="ko")
+    return result["text"].strip()
+
+# 🧠 GPT 응답 생성
+def get_gpt_response(user_text):
+    system_prompt = """당신은 ESTJ 성향의 도슨트 로봇입니다... (중략)"""
+    try:
+        response = openai.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_text}
+            ],
+            max_tokens=500,
+            temperature=0.7
+        )
+        return response.choices[0].message.content.strip()
+    except Exception as e:
+        print("❌ GPT 오류:", e)
+        return "GPT 처리 오류 발생"
+
+# ✂️ 문장 분할
+def split_sentences(text):
+    return re.split(r'(?<=[.!?])\s+', text.strip())
+
+# 💬 텍스트 처리 (음성 or 클라이언트로 받은 것)
+def process_input(text):
+    print(f"📨 입력: {text}")
+    if text in VIDEO_PATHS:
+        play_video(VIDEO_PATHS[text])
+        speak(f"현재 상태는 {text} 입니다.")
+        return
+
+    response = get_gpt_response(text)
+    print("🤖 GPT 응답:", response)
+    for sentence in split_sentences(response):
+        speak(sentence)
+        torch.cuda.empty_cache()
+
+# 🧠 소켓 서버 모드
+def start_socket_server():
+    server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    server.bind(('', 12345))
+    server.listen()
+    print("✅ 소켓 서버 실행 중 (port 12345)")
+    while True:
+        client_socket, addr = server.accept()
+        print(f"🔗 연결됨: {addr}")
+        threading.Thread(target=handle_client, args=(client_socket,)).start()
+
+def handle_client(sock):
+    with sock:
+        while True:
+            msg = sock.recv(1024).decode('utf-8').strip()
+            if not msg:
+                break
+            if msg == "exit":
+                print("👋 클라이언트 종료 요청")
+                break
+            process_input(msg)
+
+# 🔁 대화 루프 시작
+def main_loop():
+    while True:
+        print("🎛️ '1': 음성 입력 | '2': 소켓 서버 모드 | 'q': 종료")
+        key = keyboard.read_event().name
+        if key == '1':
+            text = record_and_transcribe(duration=7)
+            process_input(text)
+        elif key == '2':
+            start_socket_server()
+        elif key == 'q':
+            print("👋 종료합니다")
+            break
+
+if __name__ == "__main__":
+    main_loop()
