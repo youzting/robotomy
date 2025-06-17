@@ -28,11 +28,11 @@
             </intent-filter>
         </activity>
 
-        // 세로 모드 QR 스캔
+        <!-- ZXing 커스텀 액티비티 -->
         <activity
             android:name=".MyCaptureActivity"
             android:theme="@style/zxing_CaptureTheme"
-            tools:replace="screenOrientation" />
+             />
 
     </application>
 </manifest>
