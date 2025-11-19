@@ -1,0 +1,179 @@
+package com.robotomy.display
+
+import android.os.Bundle
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.*
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.drawscope.Fill
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.platform.LocalConfiguration
+
+class MainActivity : ComponentActivity() {
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContent { EyeEmotionApp() }
+    }
+}
+
+@Composable
+fun EyeEmotionApp() {
+    var emotion by remember { mutableStateOf("neutral") }
+
+    val configuration = LocalConfiguration.current
+    val screenWidth = configuration.screenWidthDp.dp
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0xFF242424))
+            .padding(8.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.SpaceEvenly
+    ) {
+        
+        EyeEmotionDisplay(
+            emotion = emotion,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(screenWidth * 0.6f) 
+        )
+
+        
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+                horizontalArrangement = Arrangement.SpaceEvenly
+            ) {
+                EmotionButton("angry", "😠 Angry") { emotion = "angry" }
+                EmotionButton("happy", "😊 Happy") { emotion = "happy" }
+                EmotionButton("surprised", "😮 Surprise") { emotion = "surprised" }
+            }
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.Center
+            ) {
+                EmotionButton("neutral", "😐 Neutral") { emotion = "neutral" }
+                Spacer(modifier = Modifier.width(8.dp))
+                EmotionButton("sad", "😢 Sad") { emotion = "sad" }
+            }
+        }
+    }
+}
+
+@Composable
+fun EmotionButton(emotion: String, label: String, onClick: () -> Unit) {
+    Button(
+        onClick = onClick,
+        colors = ButtonDefaults.buttonColors(
+            containerColor = when (emotion) {
+                "happy" -> Color(0xFF4CAF50)
+                "sad" -> Color(0xFF2196F3)
+                "angry" -> Color(0xFFF44336)
+                "surprised" -> Color(0xFFFF9800)
+                else -> Color(0xFF9E9E9E)
+            }
+        ),
+        modifier = Modifier.padding(horizontal = 4.dp)
+    ) { Text(label, fontSize = 14.sp, fontWeight = FontWeight.Bold) }
+}
+
+@Composable
+fun EyeEmotionDisplay(emotion: String, modifier: Modifier = Modifier) {
+    val targetColor = when (emotion) {
+        "angry" -> Color(0xFFFF3333)
+        "happy" -> Color(0xFF00FFAA)
+        "sad" -> Color(0xFF448AFF)
+        "surprised" -> Color(0xFFFFCC00)
+        else -> Color(0xFF00FFFF)
+    }
+    val eyeColor by animateColorAsState(targetValue = targetColor, animationSpec = tween(400))
+
+    val blink = rememberInfiniteTransition(label = "blink")
+    val blinkScale by blink.animateFloat(
+        initialValue = 1f,
+        targetValue = 0.9f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(1500, easing = LinearEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "blink-scale"
+    )
+
+    Canvas(modifier = modifier.aspectRatio(2f)) {
+        val w = size.width
+        val h = size.height
+        val eyeY = h * 0.45f
+        val leftEyeX = w * 0.35f
+        val rightEyeX = w * 0.65f
+        val eyeSize = w * 0.1f * blinkScale
+
+        fun drawArcEye(centerX: Float, centerY: Float, arcWidth: Float, arcHeight: Float, isUp: Boolean, color: Color) {
+            val path = Path().apply {
+                val halfW = arcWidth / 2f
+                moveTo(centerX - halfW, centerY)
+                cubicTo(
+                    centerX - halfW / 2, if (isUp) centerY - arcHeight else centerY + arcHeight,
+                    centerX + halfW / 2, if (isUp) centerY - arcHeight else centerY + arcHeight,
+                    centerX + halfW, centerY
+                )
+                close()
+            }
+            drawPath(path, color = color, style = Fill)
+        }
+
+        fun drawMouth(centerX: Float, centerY: Float, width: Float, height: Float, isUp: Boolean, color: Color) {
+            val path = Path().apply {
+                val halfW = width / 2f
+                moveTo(centerX - halfW, centerY)
+                cubicTo(
+                    centerX - halfW / 2, if (isUp) centerY - height else centerY + height,
+                    centerX + halfW / 2, if (isUp) centerY - height else centerY + height,
+                    centerX + halfW, centerY
+                )
+            }
+            drawPath(path, color = color, style = Stroke(width = width * 0.1f))
+        }
+
+        when (emotion) {
+            "angry" -> {
+                drawArcEye(leftEyeX, eyeY, eyeSize * 2f, eyeSize * 0.9f, isUp = false, color = eyeColor)
+                drawArcEye(rightEyeX, eyeY, eyeSize * 2f, eyeSize * 0.9f, isUp = false, color = eyeColor)
+            }
+            "happy" -> {
+                drawArcEye(leftEyeX, eyeY, eyeSize * 1.8f, eyeSize * 0.8f, isUp = true, color = eyeColor)
+                drawArcEye(rightEyeX, eyeY, eyeSize * 1.8f, eyeSize * 0.8f, isUp = true, color = eyeColor)
+                drawMouth(w / 2f, eyeY + eyeSize * 1.5f, eyeSize * 2.2f, eyeSize * 1f, isUp = false, color = eyeColor)
+            }
+            "sad" -> {
+                drawArcEye(leftEyeX, eyeY + eyeSize * 0.2f, eyeSize * 1.8f, eyeSize * 0.8f, isUp = false, color = eyeColor)
+                drawArcEye(rightEyeX, eyeY + eyeSize * 0.2f, eyeSize * 1.8f, eyeSize * 0.8f, isUp = false, color = eyeColor)
+                drawMouth(w / 2f, eyeY + eyeSize * 1.5f, eyeSize * 2.2f, eyeSize * 1f, isUp = true, color = eyeColor)
+            }
+            "surprised" -> {
+                drawCircle(color = eyeColor, radius = eyeSize * 1.2f, center = Offset(leftEyeX, eyeY))
+                drawCircle(color = eyeColor, radius = eyeSize * 1.2f, center = Offset(rightEyeX, eyeY))
+                drawCircle(color = eyeColor, radius = eyeSize * 0.6f, center = Offset(w / 2f, eyeY + eyeSize * 1.8f))
+            }
+            else -> {
+                drawCircle(color = eyeColor, radius = eyeSize * 1.2f, center = Offset(leftEyeX, eyeY))
+                drawCircle(color = eyeColor, radius = eyeSize * 1.2f, center = Offset(rightEyeX, eyeY))
+            }
+        }
+    }
+}
