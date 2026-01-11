@@ -1,0 +1,637 @@
+package com.example.temi
+
+import android.os.Bundle
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Map
+import androidx.compose.material.icons.filled.Route
+import androidx.compose.material.icons.filled.VolumeUp
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shadow
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+
+// pager (광고 캐러셀)
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
+
+/* ===== 스타일 상수 ===== */
+private val OVERLAY = Brush.verticalGradient(
+    0f to Color.Black.copy(alpha = 0.20f),
+    1f to Color.Black.copy(alpha = 0.35f)
+)
+private val CARD_COLOR = Color(0xFF27B3A3)
+private val TITLE_SHADOW = Color.Black.copy(alpha = 0.35f)
+
+/* [버튼 크기/간격 조절] */
+private val GRID_SIDE_PADDING = 16.dp
+private val GRID_V_SPACING = 18.dp
+private val BUTTON_HEIGHT = 110.dp
+private val BUTTON_RADIUS = 16.dp
+
+/* [AD 영역] 높이 */
+private val AD_TOP_HEIGHT = 120.dp
+private val AD_BOTTOM_HEIGHT = 70.dp
+
+/* ===== 라우트 키 ===== */
+private const val ROUTE_HOME = "home"
+private const val ROUTE_GUIDE = "guide"
+private const val ROUTE_EXPLAIN = "explain"
+private const val ROUTE_FLOORS = "floors"
+private const val ROUTE_ROUTE = "route"
+private const val ROUTE_FLOOR_MAP = "floorMap"
+
+class MainActivity : ComponentActivity() {
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContent {
+            MaterialTheme {
+                AppNav()
+            }
+        }
+    }
+}
+
+/* ================== NavHost ================== */
+@Composable
+private fun AppNav() {
+    val nav = rememberNavController()
+    NavHost(navController = nav, startDestination = ROUTE_HOME) {
+
+        composable(ROUTE_HOME) {
+            HomeWithAds(
+                onMenuClick = { key ->
+                    when (key) {
+                        "guide"   -> nav.navigate(ROUTE_GUIDE)
+                        "explain" -> nav.navigate(ROUTE_EXPLAIN)
+                        "floors"  -> nav.navigate(ROUTE_FLOORS)
+                        "route"   -> nav.navigate(ROUTE_ROUTE)
+                    }
+                }
+            )
+        }
+
+        composable(ROUTE_GUIDE)   { GuideScreen (onBack = { nav.popBackStack() }) }
+        composable(ROUTE_EXPLAIN) { ExplainScreen(onBack = { nav.popBackStack() }) }
+        composable(ROUTE_ROUTE)   { RouteScreen (onBack = { nav.popBackStack() }) }
+
+        // ✅ 층별 정보: 평면도 화면으로 이동 콜백 연결
+        composable(ROUTE_FLOORS) {
+            FloorsScreen(
+                onBack = { nav.popBackStack() },
+                onOpenFloorMap = { floorId ->
+                    nav.navigate("$ROUTE_FLOOR_MAP/$floorId")
+                }
+            )
+        }
+
+        // ✅ 층 평면도 (floorId 파라미터)
+        composable("$ROUTE_FLOOR_MAP/{floorId}") { backStackEntry ->
+            val floorId = backStackEntry.arguments?.getString("floorId") ?: "1F"
+            FloorMapScreen(
+                floorId = floorId,
+                onBack = { nav.popBackStack() }
+            )
+        }
+    }
+}
+
+/*---------------- 평면도 -----------------*/
+@Composable
+private fun FloorMapScreen(
+    floorId: String,
+    onBack: () -> Unit
+) {
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("$floorId 평면도") },
+                navigationIcon = {
+                    IconButton(onClick = onBack) { Icon(Icons.Filled.ArrowBack, null) }
+                }
+            )
+        }
+    ) { inner ->
+        Box(Modifier.fillMaxSize().padding(inner), contentAlignment = Alignment.Center) {
+            val imageRes = when (floorId) {
+                "B1" -> R.drawable.floor_b1
+                "1F" -> R.drawable.floor_b1
+                "2F" -> R.drawable.floor_b1
+                "3F" -> R.drawable.floor_b1
+                else -> null
+            }
+            if (imageRes != null) {
+                Image(
+                    painter = painterResource(imageRes),
+                    contentDescription = "$floorId floor map",
+                    contentScale = ContentScale.Fit,
+                    modifier = Modifier.fillMaxWidth().padding(16.dp)
+                )
+            } else {
+                Text("평면도 이미지가 준비되지 않았습니다.", color = Color.Gray)
+            }
+        }
+    }
+}
+
+/* ================== 홈 + 광고 + 2×2 ================== */
+@Composable
+fun HomeWithAds(onMenuClick: (String) -> Unit) {
+    Box(Modifier.fillMaxSize()) {
+        Image(
+            painter = painterResource(id = R.drawable.abc), // res/drawable/abc.jpg
+            contentDescription = null,
+            contentScale = ContentScale.Crop,
+            modifier = Modifier.fillMaxSize()
+        )
+        Box(Modifier.fillMaxSize().background(OVERLAY))
+
+        Column(
+            Modifier
+                .fillMaxSize()
+                .systemBarsPadding()
+                .padding(horizontal = 16.dp)
+        ) {
+            Spacer(Modifier.height(8.dp))
+            Text(
+                text = "robotomy",
+                modifier = Modifier.fillMaxWidth(),
+                textAlign = TextAlign.Center,
+                color = Color.White,
+                fontSize = 28.sp,
+                fontWeight = FontWeight.ExtraBold,
+                letterSpacing = 0.5.sp,
+                style = LocalTextStyle.current.copy(
+                    shadow = Shadow(color = TITLE_SHADOW, blurRadius = 8f)
+                )
+            )
+
+            Spacer(Modifier.height(12.dp))
+
+            // 상단 광고
+            AdCarousel(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(AD_TOP_HEIGHT)
+                    .padding(bottom = 8.dp)
+            )
+
+            Spacer(Modifier.weight(0.10f))
+
+            // 중앙 메뉴
+            Box(
+                Modifier
+                    .fillMaxWidth()
+                    .weight(0.55f),
+                contentAlignment = Alignment.Center
+            ) {
+                MenuGrid(onMenuClick)
+            }
+
+            Spacer(Modifier.weight(0.10f))
+
+            // 하단 광고
+            AdCarousel(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(AD_BOTTOM_HEIGHT)
+                    .padding(top = 8.dp, bottom = 10.dp)
+            )
+        }
+    }
+}
+
+/* ----- 광고 캐러셀 ----- */
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+private fun AdCarousel(modifier: Modifier = Modifier) {
+    val ads = remember {
+        listOf(
+            AdItem(title = "9월 특별전 안내", bg = Color(0xFF1F6FEB)),
+            AdItem(title = "도슨트 모집",   bg = Color(0xFFDB3B61)),
+            AdItem(title = "상설전 오픈!",  bg = Color(0xFF7E57C2))
+        )
+    }
+    val pager = rememberPagerState(pageCount = { ads.size })
+
+    Card(
+        modifier = modifier,
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.Black.copy(alpha = 0.12f)),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+    ) {
+        HorizontalPager(state = pager) { page ->
+            Box(
+                Modifier
+                    .fillMaxSize()
+                    .background(ads[page].bg),
+                contentAlignment = Alignment.CenterStart
+            ) {
+                Text(
+                    text = ads[page].title,
+                    color = Color.White,
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(start = 16.dp)
+                )
+            }
+        }
+    }
+}
+private data class AdItem(val title: String, val bg: Color)
+
+/* ----- 메뉴  ----- */
+@Composable
+private fun MenuGrid(onMenuClick: (String) -> Unit) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = GRID_SIDE_PADDING),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            MenuButton("관람 정보",  modifier = Modifier.weight(1f)) { onMenuClick("guide") }
+            MenuButton("전시해설 정보", modifier = Modifier.weight(1f)) { onMenuClick("explain") }
+        }
+
+        Spacer(Modifier.height(GRID_V_SPACING))
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            MenuButton("층별 정보", modifier = Modifier.weight(1f)) { onMenuClick("floors") }
+            MenuButton("길 안내",   modifier = Modifier.weight(1f)) { onMenuClick("route") }
+        }
+    }
+}
+
+@Composable
+private fun MenuButton(
+    text: String,
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit
+) {
+    ElevatedButton(
+        onClick = onClick,
+        modifier = modifier
+            .height(BUTTON_HEIGHT)
+            .padding(horizontal = 6.dp),
+        shape = RoundedCornerShape(BUTTON_RADIUS),
+        colors = ButtonDefaults.elevatedButtonColors(
+            containerColor = CARD_COLOR,
+            contentColor = Color.White
+        ),
+        elevation = ButtonDefaults.elevatedButtonElevation(defaultElevation = 4.dp),
+        contentPadding = PaddingValues(0.dp)
+    ) {
+        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            Text(text = text, fontWeight = FontWeight.SemiBold, maxLines = 1)
+        }
+    }
+}
+
+/* ================== 관람 정보 ================== */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun GuideScreen(onBack: () -> Unit) {
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("관람 정보") },
+                navigationIcon = {
+                    IconButton(onClick = onBack) {
+                        Icon(Icons.Filled.ArrowBack, contentDescription = "뒤로")
+                    }
+                }
+            )
+        }
+    ) { inner ->
+        Column(
+            Modifier
+                .fillMaxSize()
+                .padding(inner)
+                .verticalScroll(rememberScrollState())
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            SectionTitle("운영 시간")
+            InfoCard { Text("· 평일 10:00 ~ 18:00\n· 주말/공휴일 10:00 ~ 20:00\n· 매주 월요일 휴관") }
+            SectionTitle("관람 요금")
+            InfoCard { Text("· 성인 5,000원 / 청소년 3,000원 / 어린이 무료\n· 단체(20인 이상) 20% 할인\n· 상설전 무료, 특별전 유료(회차별 상이)") }
+            SectionTitle("이용 안내")
+            InfoCard { Text("· 촬영은 플래시/삼각대 금지\n· 박물관 내 음식물 섭취 금지\n· 유모차/휠체어 대여는 1층 안내데스크") }
+        }
+    }
+}
+
+/* ================== 전시해설 정보 ================== */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun ExplainScreen(onBack: () -> Unit) {
+    val sections = listOf(
+        ExhibitSection("선사 시대", "구석기–신석기–청동기 문화 변천을 대표 유물로 안내합니다.", "오디오 4분"),
+        ExhibitSection("삼국 시대", "고구려·백제·신라의 공예와 무기, 토기 비교 해설.", "오디오 5분"),
+        ExhibitSection("조선 시대", "유교 문화와 궁중 공예, 회화 작품 중심 해설.", "오디오 6분"),
+        ExhibitSection("근현대", "근대 개화기 이후 한국 디자인·생활사 변화.", "오디오 3분")
+    )
+
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("전시해설 정보") },
+                navigationIcon = {
+                    IconButton(onClick = onBack) {
+                        Icon(Icons.Filled.ArrowBack, contentDescription = "뒤로")
+                    }
+                }
+            )
+        }
+    ) { inner ->
+        Column(
+            Modifier
+                .fillMaxSize()
+                .padding(inner)
+                .verticalScroll(rememberScrollState())
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            sections.forEach { s ->
+                ExhibitCard(
+                    title = s.title,
+                    desc = s.desc,
+                    duration = s.duration,
+                    onPlay = { /* TODO: 오디오 가이드 재생 */ }
+                )
+            }
+        }
+    }
+}
+private data class ExhibitSection(val title: String, val desc: String, val duration: String)
+
+/* ================== 층별 정보 ================== */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun FloorsScreen(
+    onBack: () -> Unit,
+    onOpenFloorMap: (String) -> Unit   // ✅ 평면도 이동 콜백
+) {
+    val floors = listOf(
+        FloorInfo(
+            id = "B1",
+            name = "B1 지하 전시관",
+            points = listOf("특별전시실 A", "보존과학실(전시)", "상영관")
+        ),
+        FloorInfo(
+            id = "1F",
+            name = "1F 로비·상설전",
+            points = listOf("안내데스크/매표", "상설전 1(선사·삼국)", "뮤지엄샵", "유모차/휠체어 대여")
+        ),
+        FloorInfo(
+            id = "2F",
+            name = "2F 상설전",
+            points = listOf("상설전 2(조선)", "교육실", "세미나실")
+        ),
+        FloorInfo(
+            id = "3F",
+            name = "3F 상설전·기획",
+            points = listOf("상설전 3(근현대)", "기획전시실 B", "라운지")
+        )
+    )
+
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("층별 정보") },
+                navigationIcon = {
+                    IconButton(onClick = onBack) {
+                        Icon(Icons.Filled.ArrowBack, contentDescription = "뒤로")
+                    }
+                }
+            )
+        }
+    ) { inner ->
+        Column(
+            Modifier
+                .fillMaxSize()
+                .padding(inner)
+                .verticalScroll(rememberScrollState())
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            floors.forEach { f ->
+                ExpandableCard(
+                    title = f.name,
+                    content = {
+                        Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                            f.points.forEach { Text("• $it") }
+                            TextButton(onClick = { onOpenFloorMap(f.id) }) {   // ✅ 여기서 이동
+                                Icon(Icons.Filled.Map, contentDescription = null)
+                                Spacer(Modifier.width(6.dp))
+                                Text("층 평면도 보기")
+                            }
+                        }
+                    }
+                )
+            }
+        }
+    }
+}
+private data class FloorInfo(
+    val id: String,                 // ✅ 추가된 필드
+    val name: String,
+    val points: List<String>
+)
+
+/* ================== 길 안내 ================== */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun RouteScreen(onBack: () -> Unit) {
+    val exhibits = listOf("선사 시대", "삼국 시대", "조선 시대", "근현대")
+    val facilities = listOf("안내데스크", "화장실(1F)", "엘리베이터", "뮤지엄샵")
+    var selected by remember { mutableStateOf<String?>(null) }
+
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("길 안내") },
+                navigationIcon = {
+                    IconButton(onClick = onBack) {
+                        Icon(Icons.Filled.ArrowBack, contentDescription = "뒤로")
+                    }
+                }
+            )
+        }
+    ) { inner ->
+        Column(
+            Modifier
+                .fillMaxSize()
+                .padding(inner)
+                .verticalScroll(rememberScrollState())
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            SectionTitle("목적지 선택")
+            InfoCard {
+                Text("전시관")
+                Spacer(Modifier.height(8.dp))
+                FlowWrap {
+                    exhibits.forEach { item ->
+                        ChoiceChip(label = item, selected = selected == item) { selected = item }
+                    }
+                }
+                Spacer(Modifier.height(12.dp))
+                Text("편의시설")
+                Spacer(Modifier.height(8.dp))
+                FlowWrap {
+                    facilities.forEach { item ->
+                        ChoiceChip(label = item, selected = selected == item) { selected = item }
+                    }
+                }
+            }
+
+            SectionTitle("경로 안내")
+            if (selected == null) {
+                InfoCard { Text("목적지를 선택하면 이동 경로가 안내됩니다.") }
+            } else {
+                InfoCard {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(Icons.Filled.Route, contentDescription = null)
+                        Spacer(Modifier.width(8.dp))
+                        Text("현재 위치 → $selected")
+                    }
+                    Spacer(Modifier.height(8.dp))
+                    Text("1) 로비 기준 오른쪽 복도로 이동\n2) 엘리베이터를 이용해 2층으로 이동\n3) 안내 표지판을 따라 '$selected' 전시장 입장")
+                    // TODO: Temi SDK 연동: robot.goTo(<waypoint>) / followMe 등
+                }
+            }
+        }
+    }
+}
+
+/* ================== 재사용 컴포넌트 ================== */
+@Composable
+private fun SectionTitle(text: String) {
+    Text(text, fontWeight = FontWeight.Bold, fontSize = 18.sp)
+}
+
+@Composable
+private fun InfoCard(content: @Composable ColumnScope.() -> Unit) {
+    ElevatedCard(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(12.dp)
+    ) {
+        Column(Modifier.padding(16.dp), content = content)
+    }
+}
+
+// 전시 해설 카드 (오디오 가이드 버튼 포함)
+@Composable
+private fun ExhibitCard(
+    title: String,
+    desc: String,
+    duration: String,
+    onPlay: () -> Unit
+) {
+    ElevatedCard(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(12.dp)
+    ) {
+        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Text(title, fontWeight = FontWeight.Bold)
+            Text(desc)
+            Row(
+                Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                AssistChip(
+                    onClick = onPlay,
+                    label = { Text(duration) },
+                    leadingIcon = { Icon(Icons.Filled.VolumeUp, contentDescription = null) }
+                )
+                TextButton(onClick = { /* TODO: 해설 본문 자세히 */ }) {
+                    Text("자세히 보기")
+                }
+            }
+        }
+    }
+}
+
+// 펼침 카드(층별 정보)
+@Composable
+private fun ExpandableCard(
+    title: String,
+    content: @Composable () -> Unit
+) {
+    var expanded by remember { mutableStateOf(false) }
+    ElevatedCard(
+        modifier = Modifier.fillMaxWidth().clickable { expanded = !expanded },
+        shape = RoundedCornerShape(12.dp)
+    ) {
+        Column(Modifier.padding(16.dp)) {
+            Row(
+                Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(title, fontWeight = FontWeight.Bold)
+                Text(if (expanded) "접기" else "펼치기", color = CARD_COLOR, fontWeight = FontWeight.SemiBold)
+            }
+            if (expanded) {
+                Spacer(Modifier.height(8.dp))
+                content()
+            }
+        }
+    }
+}
+
+// 간단한 Chip UI (선택형)
+@Composable
+private fun ChoiceChip(label: String, selected: Boolean, onClick: () -> Unit) {
+    Surface(
+        color = if (selected) CARD_COLOR else Color(0xFFE6F4F1),
+        contentColor = if (selected) Color.White else Color(0xFF14635D),
+        shape = RoundedCornerShape(50),
+        tonalElevation = if (selected) 2.dp else 0.dp,
+        shadowElevation = if (selected) 2.dp else 0.dp,
+        modifier = Modifier.padding(end = 8.dp, bottom = 8.dp).clickable(onClick = onClick)
+    ) {
+        Box(Modifier.padding(horizontal = 12.dp, vertical = 8.dp)) {
+            Text(label, fontWeight = FontWeight.SemiBold)
+        }
+    }
+}
+
+// 행·열을 자동 줄바꿈으로 배치(간단 버전)
+@Composable
+private fun FlowWrap(content: @Composable RowScope.() -> Unit) {
+    Row(Modifier.fillMaxWidth(), content = content)
+}
